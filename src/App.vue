@@ -9,6 +9,9 @@ import TheWelcome from './components/TheWelcome.vue'
     <div class="text-3xl font-bold text-blue-500 p-6 bg-yellow-100 rounded">
     สวัสดี Tailwind CSS!
     </div>
+    <div class="text-3xl font-bold text-blue-500 p-6 bg-yellow-100 rounded">
+    สวัสดี Tailwind CSS!
+    </div>
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
