@@ -39,7 +39,13 @@
 </template>
 
 <script setup>
-// ยังไม่ต้องใส่อะไรถ้าไม่มี logic
+import { ref } from 'vue'
+
+const showPassword = ref(false)
+
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
 </script>
 
 <style scoped>
