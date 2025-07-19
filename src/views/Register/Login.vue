@@ -9,7 +9,7 @@
 
     <!-- Card -->
     <div class="bg-white shadow-md rounded-2xl px-8 py-10 w-96 text-center mt-20">
-      <h1 class="text-2xl font-serif mb-6">sing in</h1>
+      <h1 class="text-2xl font-serif mb-6">Sign in</h1>
 
       <!-- Email input -->
       <input
@@ -37,7 +37,7 @@
       <router-link to="#"><button
         class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2"
       >
-        sing in
+        Sign in
       </button></router-link>
 
       <!-- Forgot Password-->
@@ -69,7 +69,7 @@
     <router-link to="#"><button
       class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2"
     >
-      sing up
+      Sign Up
     </button></router-link>
   </div>
 </template>

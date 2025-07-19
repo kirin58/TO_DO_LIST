@@ -28,10 +28,10 @@
         <!-- Sign in / Sign up -->
         <div class="flex gap-4 justify-center">
             <button class="btn">
-                sign in
+                Sign in
             </button>
             <button class="btn">
-                sign up
+                Sign up
             </button>
         </div>
     </div>
