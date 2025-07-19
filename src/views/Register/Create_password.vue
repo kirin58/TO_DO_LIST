@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-10">
     <!-- Logo -->
     <div class="absolute top-0 left-10 flex items-center space-x-2">
-      <img src="../assets/Logo.png" alt="logo" class="w-36 h-36" />
+      <img src="/src/assets/Logo.png" alt="logo" class="w-36 h-36" />
     </div>
 
     <!-- Card -->
