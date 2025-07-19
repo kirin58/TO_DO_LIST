@@ -4,12 +4,23 @@
   <div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center">
     <!-- Logo -->
     <div class="absolute top-0 left-10 flex items-center space-x-2">
-      <img src="../assets/Logo.png" alt="logo" class="w-36 h-36" />
+      <img src="/src/assets/Logo.png" alt="logo" class="w-36 h-36" />
+    </div>
+        <div class="absolute top-12 right-10 flex items-center space-x-2">
+      <p class="text-sm text-black mt-5 mb-5">
+        Already have an account?
+      </p>
+      <router-link to="#">
+        <button class="font-medium w-full flex items-center justify-center bg-orange-300 hover:bg-orange-200 text-black py-2 px-5 rounded-lg"
+        >
+          Sign In
+        </button>
+    </router-link>
     </div>
 
     <!-- Card -->
     <div class="bg-white shadow-md rounded-2xl px-8 py-10 w-96 text-center mt-20">
-      <h1 class="text-2xl font-serif mb-6">Sign up</h1>
+      <h1 class="text-2xl font-serif mb-6">Sign Up</h1>
 
       <!-- Email input -->
       <input
@@ -37,7 +48,7 @@
       <router-link to="/Login"><button
         class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-5"
       >
-        Sign up
+        Sign Up
       </button></router-link>
 
 
@@ -59,14 +70,17 @@
       </button></router-link>
     </div>
 
-    <!-- Sign Up -->
-    <p class="text-sm text-black mt-5 mb-5">
-      Already have an account?
-    </p>
-    <router-link to="/Login"><button
-      class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2">
-      Sign in
-    </button></router-link>
+    <!-- Sign In -->
+    <div class="text-center mt-6 flex flex-row justify-center items-center">
+      <p class="text-sm text-black mt-5 mb-5">
+        Already have an account?
+      </p>
+      <router-link to="/Login">
+        <p class="text-orange-500 hover:underline ml-2">
+          Sign In
+        </p>
+      </router-link>
+    </div>
   </div>
 </template>
 
