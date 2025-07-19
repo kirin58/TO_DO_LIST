@@ -33,7 +33,7 @@
 </template>
 <style>
 .menu{
-    @apply text-3xl text-slate-200 hover:text-slate-100 visited:text-white;
+    @apply text-3xl text-slate-200 hover:text-slate-100;
 }
 .menu_active .menu {
   @apply text-white;
