@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-10">
     <!-- Logo -->
     <div class="absolute top-0 left-10 flex items-center space-x-2">
-      <img src="../assets/Logo.png" alt="logo" class="w-36 h-36" />
+      <img src="/src/assets/Logo.png" alt="logo" class="w-36 h-36" />
     </div>
 
     <!-- Card -->
@@ -17,7 +17,7 @@
 
         <!-- Reset Password Button -->
         <button
-            class="bg-orange-200 text-gray-900 px-10 py-2 rounded-lg font-medium mt-2 mb-10 hover:bg-orange-300 transition"
+            class="bg-orange-300 text-gray-900 px-10 py-2 rounded-lg font-medium mt-2 mb-10 hover:bg-orange-200 transition"
         >
             Reset Password
         </button>
@@ -27,12 +27,16 @@
 
         <!-- Sign in / Sign up -->
         <div class="flex gap-4 justify-center">
-            <button class="btn">
+            <router-link to="/Login">
+              <button class="btn">
                 Sign in
-            </button>
-            <button class="btn">
-                Sign up
-            </button>
+              </button>
+            </router-link>
+            <router-link to="/Signup">
+              <button class="btn">
+                  Sign up
+              </button>
+            </router-link>
         </div>
     </div>
   </div>
@@ -51,12 +55,12 @@ const togglePassword = () => {
 <style scoped>
     .btn{
         @apply
-        bg-orange-200
+        bg-orange-300
         text-gray-900 
         px-12 py-2 
         rounded-lg 
         font-medium 
-        hover:bg-orange-300 transition
+        hover:bg-orange-200 transition
         mt-5 mb-24
         ;
     }
