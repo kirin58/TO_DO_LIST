@@ -1,42 +1,33 @@
 <template>
-  <div class="flex items-center justify-center min-h-screen bg-gray-50">
-    <div class="flex items-center justify-between w-full max-w-5xl px-4">
-      
+  <div class="flex items-center justify-center min-h-screen bg-slate-50">
+    <div class="flex items-center justify-between w-full max-w-7xl px-4 ">
+
       <!-- Left Illustration -->
-      <div class="hidden md:flex flex-col items-center">
-        <img
-          src="/src/assets/Logo.png"
-          alt="img"
-          class="w-64"
-        />
+      <div class="hidden md:flex flex-col items-center mr-20">
+      <img src="/public/8.png" alt="left" />
       </div>
 
       <!-- Center: Logo and Button -->
-      <div class="flex flex-col items-center space-y-6">
-        <img src="/src/assets/Logo.png" alt="logo" class="w-36 h-36" />
+      <div class="flex flex-col items-center space-y-10 ">
+        <img src="/src/assets/Logo.png" alt="logo" class="w-46 h-46 mt-10" />
+        <router-link to="#">
         <button
-          class="px-6 py-2 bg-yellow-300 hover:bg-yellow-400 text-black font-semibold rounded shadow"
+          class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-20 -mt-2"
         >
-          Sign in
+          Sign In
         </button>
+      </router-link>
       </div>
 
       <!-- Right Illustration -->
-      <div class="hidden md:flex flex-col items-center">
-        <img
-          src="/src/assets/Logo.png"
-          alt="img"
-          class="w-64"
-        />
+      <div class="hidden md:flex flex-col items-center ml-20">
+        <img src="/public/7.png" alt="right" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-// ไม่มี logic JS พิเศษในหน้า static นี้
+
 </script>
 
-<style scoped>
-/* เพิ่มเติมถ้าต้องการ custom styles */
-</style>
