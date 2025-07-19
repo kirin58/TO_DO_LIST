@@ -19,7 +19,7 @@
             </div>
         </div>
         
-        <div class="bar">
+        <div class="bar justify-end mb-10">
             <div class="line"><div></div></div>
             <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-check-square'  exact-active-class="task_active"></i> <p class="text-base">Completed</p></router-link>
             <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-trash'  exact-active-class="task_active"></i> <p class="text-base">Trash</p></router-link>
@@ -34,7 +34,7 @@
     @apply h-px w-full flex flex-col bg-orange-300 my-6 ;
 }
 .taskmenu{
-    @apply flex flex-row items-center gap-2 hover:bg-orange-200 m-1 mb-2 p-2 rounded-md text-3xl text-gray-700;
+    @apply flex flex-row items-center gap-2 hover:bg-orange-200 m-1 mb-2 p-2 rounded-md text-2xl text-gray-700;
 }
 .list{
     @apply flex flex-row items-center justify-between hover:bg-orange-200 m-1 mb-2 p-1 rounded-md text-base text-gray-700;
