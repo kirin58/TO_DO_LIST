@@ -58,6 +58,3 @@ function togglePassword(index) {
   if (index === 2) showPassword2.value = !showPassword2.value
 }
 </script>
-<style scoped>
-/* ปรับ font ถ้าอยากใช้ font serif แบบในภาพ */
-</style>
