@@ -3,7 +3,7 @@
         <div class="h-4/6 w-full flex flex-col items-center gap-10">
             <button class="w-10 h-10 bg-slate-200 rounded-lg"></button>
             <nav class="h-1/2 w-full flex flex-col items-center justify-between">
-                <router-link to="#" exact-active-class="menu_active">
+                <router-link to="/Inbox" exact-active-class="menu_active">
                     <i class='menu bx  bxs-check-square'  ></i>
                 </router-link>
                 <router-link to="#" exact-active-class="menu_active">

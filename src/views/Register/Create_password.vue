@@ -36,7 +36,7 @@
         ></i>
       </div>
 
-      <router-link to="#">
+      <router-link to="/Resetpassword">
         <button
           class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mt-5 mb-20"
         >

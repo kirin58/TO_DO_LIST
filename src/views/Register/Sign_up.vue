@@ -34,7 +34,7 @@
 
 
       <!-- Sign Up Button -->
-      <router-link to="#"><button
+      <router-link to="/Login"><button
         class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-5"
       >
         Sign up
@@ -63,9 +63,8 @@
     <p class="text-sm text-black mt-5 mb-5">
       Already have an account?
     </p>
-    <router-link to="#"><button
-      class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2"
-    >
+    <router-link to="/Login"><button
+      class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2">
       Sign in
     </button></router-link>
   </div>

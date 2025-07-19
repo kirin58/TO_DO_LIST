@@ -34,14 +34,14 @@
 
 
       <!-- Sign In Button go to in box-->
-      <router-link to="#"><button
+      <router-link to="/Inbox"><button
         class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2"
       >
         Sign in
       </button></router-link>
 
       <!-- Forgot Password-->
-      <router-link to="#"><p class="text-sm text-gray-400 mb-4 cursor-pointer hover:underline">
+      <router-link to="/Resetpassword"><p class="text-sm text-gray-400 mb-4 cursor-pointer hover:underline">
         Forgot Password
       </p></router-link>
 
@@ -66,7 +66,7 @@
     <p class="text-sm text-black mt-5 mb-5">
       Don’t have an account?
     </p>
-    <router-link to="#"><button
+    <router-link to="/Signup"><button
       class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-2"
     >
       Sign Up
