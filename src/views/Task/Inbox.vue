@@ -7,6 +7,6 @@ import TaskContenrt from '@/components/TaskContent.vue';
     <body class="w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContenrt />
+        <TaskContenrt title="Inbox" />
     </body>
 </template>
