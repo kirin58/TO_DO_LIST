@@ -7,4 +7,5 @@ import PomoLayout from '@/components/PomoLayout.vue';
         <NavBar />
         <PomoLayout />
     </body>
+
 </template>
