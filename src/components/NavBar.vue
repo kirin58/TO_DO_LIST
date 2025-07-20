@@ -1,5 +1,5 @@
 <template>
-    <header class="h-screen w-16 bg-orange-300 flex flex-col items-center justify-between p-2 gap-2">
+    <header class="min-h-screen w-16 bg-orange-300 flex flex-col items-center justify-between p-2 gap-2">
         <div class="h-4/6 w-full flex flex-col items-center gap-10">
             <button class="w-10 h-10 bg-slate-200 rounded-lg"></button>
             <nav class="h-1/2 w-full flex flex-col items-center justify-between">
