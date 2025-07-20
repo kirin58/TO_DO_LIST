@@ -10,7 +10,7 @@
       <!-- Center: Logo and Button -->
       <div class="flex flex-col items-center space-y-10 ">
         <img src="/src/assets/Logo.png" alt="logo" class="w-46 h-46 mt-10" />
-        <router-link to="#">
+        <router-link to="/Login">
         <button
           class="w-40 bg-orange-300 hover:bg-orange-200 text-black font-medium py-2 rounded-lg mb-20 -mt-2"
         >
