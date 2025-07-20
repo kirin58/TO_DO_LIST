@@ -5,7 +5,7 @@ import TaskContenrt from '@/components/TaskContent.vue';
 import emptytask from '@/assets/NoInbox.png';
 </script>
 <template>
-    <div class="h-screen min-w-screen flex flex-row">
+    <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
         <TaskContenrt title="Inbox" :emptytask="emptytask" />
