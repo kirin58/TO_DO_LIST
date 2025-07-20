@@ -1,11 +1,12 @@
 <script setup>
+import { ref, onMounted  } from 'vue';
+import { collection, getDocs, addDoc } from 'firebase/firestore'
+import { db } from '@/firebase'
+
 defineProps({
     title: String,
     emptytask : String
 })
-import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc } from 'firebase/firestore'
-import { db } from '@/firebase'
 const task = ref('')
 const dueDate = ref('')
 const tasks = ref([])
@@ -34,6 +35,14 @@ onMounted(async () => {
   })
   fetchTasks()
 })
+const taskMenu = ref(null)
+
+const togglePopup = (id) => {
+  taskMenu.value = taskMenu.value === id ? null : id
+}
+const closePopup = () => {
+  taskMenu.value = null
+}
 </script>
 <template>
     <div class="w-3/5 min-h-screen">
@@ -53,14 +62,21 @@ onMounted(async () => {
         </div>
         <div class="w-full h-5/6 overflow-y-auto p-5 pr-14">
             <div v-if="tasks.length" >
-                <div v-for="t in tasks":key="t.id"class="flex items-center gap-2">
-                  <button><i class='bx  bx-menu text-xl text-zinc-300'  ></i> </button>
-                  <button><i class='bx  bx-checkbox text-4xl text-zinc-300'  ></i></button>
-                  <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
-                      <div>{{ t.text }}</div><div>{{ t.dueDate }}</div>
-                  </div>
-                  <button><i class='bx  bx-dots-horizontal text-2xl text-zinc-300 ml-3'  ></i> </button>     
+              <div v-for="t in tasks":key="t.id"class="flex items-center gap-2">
+                <button><i class='bx  bx-menu text-xl text-zinc-300'  ></i> </button>
+                <button><i class='bx  bx-checkbox text-4xl text-zinc-300'  ></i></button>
+                <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
+                  <div>{{ t.text }}</div><div>{{ t.dueDate }}</div>
                 </div>
+                <div>
+                  <button @click="() => togglePopup(t.id)">
+                    <i class='bx  bx-dots-horizontal text-2xl text-zinc-300 ml-3'  ></i>
+                  </button>
+                  <div v-if="taskMenu === t.id" class="absolute">
+                    <div class="absolute right-0 top-8 z-[9999] bg-red-200 w-36 h-36">menu</div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div v-else class="flex items-center justify-center h-full">
                 <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
