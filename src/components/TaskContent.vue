@@ -36,7 +36,7 @@ onMounted(async () => {
 })
 </script>
 <template>
-    <div class="w-3/5 h-screen">
+    <div class="w-3/5 min-h-screen">
         <div class="flex flex-col p-6 ">
             <div class="flex items-center p-2 mb-2 justify-between">
                 <p class="text-2xl font-black text-stone-600">{{ title }}</p>
