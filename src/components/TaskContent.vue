@@ -54,11 +54,12 @@ onMounted(async () => {
         <div class="w-full h-5/6 overflow-y-auto p-5 pr-14">
             <div v-if="tasks.length" >
                 <div v-for="t in tasks":key="t.id"class="flex items-center gap-2">
-                    <button><i class='bx  bx-checkbox text-4xl text-zinc-300'  ></i></button>
-                    <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
-                        <div>{{ t.text }}</div><div>{{ t.dueDate }}</div>
-                    </div>
-                    <button><i class='bx  bx-dots-horizontal text-2xl text-zinc-300 ml-3'  ></i> </button>     
+                  <button><i class='bx  bx-menu text-4xl text-zinc-300'  ></i> </button>
+                  <button><i class='bx  bx-checkbox text-4xl text-zinc-300'  ></i></button>
+                  <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
+                      <div>{{ t.text }}</div><div>{{ t.dueDate }}</div>
+                  </div>
+                  <button><i class='bx  bx-dots-horizontal text-2xl text-zinc-300 ml-3'  ></i> </button>     
                 </div>
             </div>
             <div v-else class="flex items-center justify-center h-full">
