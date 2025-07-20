@@ -2,8 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 @import './base.css';
+
 html, body, #app {
   height: 100%;
   margin: 0;
   padding: 0;
+}
+
+body {
+  @apply bg-slate-50;
 }
