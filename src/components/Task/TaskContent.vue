@@ -84,4 +84,8 @@ const closePopup = () => {
           </div>
     </div>
   </div>
+  <div class="w-1/4 h-screen flex">
+    <div class="h-screen w-px bg-zinc-300"></div>
+    <img src="/src/assets/RightBG.png" class="h-screen">
+  </div>
 </template>
