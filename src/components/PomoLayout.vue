@@ -63,7 +63,7 @@
 export default {
     data() {
         return {
-            minutes: 5, // เริ่มต้น 5 นาที
+            minutes: 25, // เริ่มต้น 5 นาที
             seconds: 0,
             timer: null,
             running: false,
@@ -117,8 +117,8 @@ export default {
         }
     },
     mounted() {
-        this.minutes = 0;
-        this.seconds = 2;
+        this.minutes = 25;
+        this.seconds = 0;
     }
 };
 </script>
