@@ -2,6 +2,7 @@
 import { ref, onMounted  } from 'vue';
 import { collection, getDocs, addDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
+import TaskPopup from './TaskPopup.vue';
 
 defineProps({
     title: String,
@@ -51,7 +52,7 @@ const closePopup = () => {
         <p class="text-2xl font-black text-stone-600">{{ title }}</p>
         <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
           <button><i class='bx  bx-shuffle'  ></i></button>
-          <button><i class='bx  bx-dots-horizontal'  ></i> </button>
+          <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
         </div>
       </div>
       <div class="w-full flex items-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
@@ -70,44 +71,10 @@ const closePopup = () => {
           </div>
           <div>
             <button @click="() => togglePopup(t.id)">
-              <i class='bx  bx-dots-horizontal text-2xl text-zinc-300 ml-3'  ></i>
+              <i class='bx  bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'  ></i>
             </button>
-            <div v-if="taskMenu === t.id" class="absolute">
-              <div class="absolute top-0 z-[9999] p-2 bg-stone-50 shadow-xl">
-                <div>
-                  <div>Date</div>
-                  <button><i class='bx  bx-sun'  ></i> </button>
-                  <button><i class='bx  bx-calendar-week'  ></i> </button>
-                  <button><i class='bx  bx-calendar-star'  ></i> </button>
-                  <button><i class='bx bx-calendar'  ></i> </button>
-                </div>
-                <div>
-                  <div>Priority</div>
-                  <button><i class='bx  bx-flag'  ></i></button>
-                  <button><i class='bx  bx-flag'  ></i></button>
-                  <button><i class='bx  bx-flag'  ></i></button>
-                  <button><i class='bx  bx-flag'  ></i></button>
-                </div>
-                <div></div>
-                <div>
-                  <button><i class='bx  bx-pin'  ></i></button>
-                  <p>Pin</p>
-                </div>
-                <div>
-                  <button><i class='bx  bx-chevron-right-square'  ></i> </button>
-                  <p>Move To</p>
-                  <div><button><i class='bx  bxs-chevron-right '></i></button></div>
-                </div>
-                <div>
-                  <button>#</button>
-                  <p>Tags</p>
-                </div>
-                <div></div>
-                <div>
-                  <button><i class='bx  bx-trash'></i></button>
-                  <p>Delete</p>
-                </div>
-              </div>
+            <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute">
+              <TaskPopup />
             </div>
           </div>
         </div>
