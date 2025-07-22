@@ -10,8 +10,8 @@
         <!-- เพิ่มนาฬิกา Pomodoro แบบวงกลม -->
         <div class="w-full flex flex-col items-center justify-center mt-12">
             <div class="flex flex-col items-center">
-                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[500px] h-[500px] mb-8">
-                    <span class="text-6xl font-light select-none">
+                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[600px] h-[600px] mb-8">
+                    <span class="text-8xl font-light select-none">
                         {{ minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
                     </span>
                 </div>
@@ -19,7 +19,7 @@
             <!-- Start/Continue -->
             <button
                 v-if="!running"
-                class="w-50 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
                 @click="startTimer"
             >
                 {{ isPaused ? 'Continue' : 'Start' }}
@@ -27,7 +27,7 @@
             <!-- End (แสดงเฉพาะตอน pause) -->
             <button
                 v-if="!running && isPaused"
-                class="w-50 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
                 @click="endTimer"
             >
                 End
@@ -35,11 +35,20 @@
             <!-- Pause (แสดงเฉพาะตอนจับเวลา) -->
             <button
                 v-if="running"
-                class="w-50 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
                 @click="pauseTimer"
             >
                 Pause
             </button>
+        </div>
+        <!-- Relax Modal -->
+        <div v-if="showRelaxModal" class="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+            <img src="/public/tomato.png" alt="tomato" class="w-40 mb-4" />
+            <div class="text-2xl font-bold mb-2">You've got a Pomo.</div>
+            <div class="text-gray-500 mb-6">Relax for 5 mint</div>
+            <button class="w-56 bg-orange-300 hover:bg-orange-400 text-white font-semibold text-xl rounded-full px-10 py-3 mb-3" @click="relax">Relax</button>
+            <button class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 mb-3" @click="skip">skip</button>
+            <button class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3" @click="exit">Exit</button>
         </div>
     </div>
     <div>
@@ -56,6 +65,7 @@ export default {
             timer: null,
             running: false,
             isPaused: false,
+            showRelaxModal: false,
         };
     },
     methods: {
@@ -68,6 +78,7 @@ export default {
                     if (this.minutes === 0) {
                         clearInterval(this.timer);
                         this.running = false;
+                        this.showRelaxModal = true; // แสดง modal เมื่อหมดเวลา
                     } else {
                         this.minutes--;
                         this.seconds = 59;
@@ -88,6 +99,15 @@ export default {
             this.seconds = 0;
             this.running = false;
             this.isPaused = false;
+        },
+        relax() {
+            this.showRelaxModal = false;
+        },
+        skip() {
+            this.showRelaxModal = false;
+        },
+        exit() {
+            this.showRelaxModal = false;
         }
     },
     mounted() {
