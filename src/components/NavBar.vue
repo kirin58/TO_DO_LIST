@@ -10,12 +10,8 @@
                     <i class='menu bx  bx-search'></i>
                 </router-link>
                 <router-link to="#" exact-active-class="menu_active">
-<<<<<<< HEAD
-                    <i class='menu bx  bx-calendar-alt'  ></i></router-link>
-                <router-link to="/Pomodoro" exact-active-class="menu_active">
-=======
                     <i class='menu bx  bx-calendar'  ></i></router-link>
-                <router-link to="#" exact-active-class="menu_active">
+                <router-link to="/Pomodoro" exact-active-class="menu_active">
                     <i class='menu bx  bxs-alarm'  ></i> </router-link>
                 <router-link to="#" exact-active-class="menu_active">
                     <i class='menu bx  bxs-grid'  ></i>
