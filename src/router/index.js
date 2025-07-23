@@ -4,7 +4,7 @@ import Login from '@/views/Register/Login.vue'
 import Signup from '@/views/Register/Sign_up.vue'
 import Resetpassword from '@/views/Register/Reset_Password.vue'
 import Inbox from '@/views/Task/Inbox.vue'
-import pomodoro from '@/views/Pomodoro.vue'
+import Pomodoro from '@/views/Pomodoro.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -12,7 +12,7 @@ const routes = [
   { path: '/Inbox' , name: 'Inbox', component: Inbox},
   { path: '/Signup' , name: 'Signup', component: Signup},
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
-  { path: '/Pomodoro' , name: 'Pomodoro', component: pomodoro},
+  { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
 
 ]
 
