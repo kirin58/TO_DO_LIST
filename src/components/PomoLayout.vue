@@ -18,7 +18,7 @@
         <!-- นาฬิกา Pomodoro หรือ Relax -->
         <div class="w-full flex flex-col items-center justify-center mt-12" v-if="!showRelaxModal">
             <div class="flex flex-col items-center">
-                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[600px] h-[600px] mb-8">
+                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[500px] h-[500px] mb-8 mt-20">
                     <span class="text-8xl font-light select-none">
                         {{ minutes < 10 ? '0' + minutes : minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
                     </span>
