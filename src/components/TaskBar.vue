@@ -8,11 +8,11 @@
             </div>
             <div>
                 <div class="line"><div></div></div>
-                <div class="list">
+                <div class="list ">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right ' exact-active-class="task_active"></i><p class="text-sm">List</p></div>
                     <div class="flex items-center"><i class='bx  bx-dots-horizontal ' exact-active-class="task_active"></i><i class='bx  bx-plus'  ></i> </div>
                 </div>
-                <div class="list">
+                <div class="list ">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right 'exact-active-class="task_active"></i> <p class="text-sm">Tags</p></div>
                     <div class="flex items-center"><i class='bx  bx-dots-horizontal ' exact-active-class="task_active"></i><i class='bx  bx-plus'  ></i> </div>
                 </div>
