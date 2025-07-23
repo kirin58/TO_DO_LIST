@@ -4,7 +4,7 @@ import Login from '@/views/Register/Login.vue'
 import Signup from '@/views/Register/Sign_up.vue'
 import Resetpassword from '@/views/Register/Reset_Password.vue'
 import Inbox from '@/views/Task/Inbox.vue'
-import Pomodoro from '@/views/pomodoro.vue' 
+import Pomodoro from '@/views/Pomodoro.vue' 
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
