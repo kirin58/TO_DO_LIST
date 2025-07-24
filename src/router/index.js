@@ -6,6 +6,7 @@ import Resetpassword from '@/views/Register/Reset_Password.vue'
 import Inbox from '@/views/Task/Inbox.vue'
 import Pomodoro from '@/views/Pomodoro.vue'
 
+
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/Login' , name: 'Login', component: Login},
