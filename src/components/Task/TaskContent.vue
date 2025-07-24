@@ -3,6 +3,7 @@ import { ref, onMounted  } from 'vue';
 import { collection, getDocs, addDoc } from 'firebase/firestore'
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
+import draggable from 'vuedraggable'
 
 defineProps({
     title: String,
@@ -63,21 +64,26 @@ const closePopup = () => {
     </div>
     <div class="w-full h-5/6 overflow-y-auto p-5 pr-14">
       <div v-if="tasks.length" >
-        <div v-for="t in tasks":key="t.id"class="flex items-center gap-2">
-          <button><i class='bx  bx-menu text-xl text-zinc-300'  ></i> </button>
-          <button><i class='bx  bx-checkbox text-4xl text-zinc-300'  ></i></button>
-          <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
-            <div>{{ t.text }}</div><div>{{ t.dueDate }}</div>
-          </div>
-          <div>
-            <button @click="() => togglePopup(t.id)">
-              <i class='bx  bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'  ></i>
-            </button>
-            <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute">
-              <TaskPopup />
+        <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
+          <template #item="{ element: t }">
+            <div class="flex items-center ">
+              <button class="drag-handle"><i class='bx bx-menu text-xl text-zinc-300'></i></button>
+              <button><i class='bx bx-checkbox text-4xl text-zinc-300'></i></button>
+              <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
+                <div>{{ t.text }}</div>
+                <div>{{ t.dueDate }}</div>
+              </div>
+              <div>
+                <button @click="() => togglePopup(t.id)">
+                  <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
+                </button>
+                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute">
+                  <TaskPopup />
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </template>
+        </draggable>
       </div>
           <div v-else class="flex items-center justify-center h-full">
             <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
@@ -89,3 +95,12 @@ const closePopup = () => {
     <img src="/src/assets/RightBG.png" class="h-screen">
   </div>
 </template>
+<style>
+.drag-chosen  {
+   @apply  opacity-100 scale-100 z-50 shadow-2xl ;
+}
+.drag-ghost {
+   @apply opacity-0 pointer-events-none overflow-hidden;
+}
+
+</style>
