@@ -1,9 +1,10 @@
 <script setup>
 import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc , doc } from 'firebase/firestore'
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
 import draggable from 'vuedraggable'
+import { watch,nextTick } from 'vue';
 
 defineProps({
     title: String,
@@ -12,6 +13,7 @@ defineProps({
 const task = ref('')
 const dueDate = ref('')
 const tasks = ref([])
+
 async function addTask() {
   if (!task.value.trim()) return
   await addDoc(collection(db, 'tasks'), {
@@ -31,12 +33,39 @@ async function fetchTasks() {
   }))
 }
 onMounted(async () => {
-  await addDoc(collection(db, 'tasks'), {
-    text: 'ตัวอย่าง task',
-    createdAt: new Date()
-  })
   fetchTasks()
 })
+
+const editID = ref(null)
+const editText = ref('')
+
+function edit(task){
+  editID.value = task.id
+  editText.value = task.text
+}
+async function editSave(task,cancle = false) {
+  if (cancle || editText.value.trim() === ''){
+    editID.value = null
+    editText.value = ''
+    return
+  }
+  const taskDocRef = doc(db,'tasks',task.id)
+  await updateDoc(taskDocRef,{
+    text: editText.value
+  })
+  editID.value = null
+  editText.value = ''
+  fetchTasks()
+}
+const editInput = ref(null)
+
+watch(editID, async(newvalue) => {
+  if (newvalue !== null) {
+    await nextTick()
+    editInput.value?.focus()
+  }
+})
+
 const taskMenu = ref(null)
 
 const togglePopup = (id) => {
@@ -56,7 +85,7 @@ const closePopup = () => {
           <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
         </div>
       </div>
-      <div class="w-full flex items-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
+      <div class="flex items-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
         <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="flex-1 bg-transparent text-slate-500 outline-none"/>
         <input type="date" v-model="dueDate" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
         <i class='bx  bx-chevron-down text-3xl'  ></i> 
@@ -66,11 +95,12 @@ const closePopup = () => {
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
-            <div class="flex items-center ">
+            <div class="w-full flex items-center ">
               <button class="drag-handle"><i class='bx bx-menu text-xl text-zinc-300'></i></button>
               <button><i class='bx bx-checkbox text-4xl text-zinc-300'></i></button>
-              <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg">
-                <div>{{ t.text }}</div>
+              <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg focus-within:border-orange-300 ">
+                <div v-if="editID !== t.id" @click="edit(t)" class="w-ful cursor-pointer select-none">{{ t.text }}</div>
+                <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
                 <div>{{ t.dueDate }}</div>
               </div>
               <div>
