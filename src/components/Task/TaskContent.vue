@@ -66,6 +66,14 @@ watch(editID, async(newvalue) => {
   }
 })
 
+async function editDate(task,newDate){
+  const taskDocRef = doc(db,'tasks',task.id)
+  await updateDoc(taskDocRef,{
+    dueDate: newDate
+  })
+  task.dueDate = newDate
+}
+
 const taskMenu = ref(null)
 
 const togglePopup = (id) => {
@@ -87,7 +95,7 @@ const closePopup = () => {
       </div>
       <div class="flex items-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
         <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="flex-1 bg-transparent text-slate-500 outline-none"/>
-        <input type="date" v-model="dueDate" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+        <input type="date" v-model="dueDate" locale="th" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
         <i class='bx  bx-chevron-down text-3xl'  ></i> 
       </div>
     </div>
@@ -101,14 +109,14 @@ const closePopup = () => {
               <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg focus-within:border-orange-300 ">
                 <div v-if="editID !== t.id" @click="edit(t)" class="w-ful cursor-pointer select-none">{{ t.text }}</div>
                 <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
-                <div>{{ t.dueDate }}</div>
+                <div v-if="t.dueDate">{{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
               </div>
               <div>
                 <button @click="() => togglePopup(t.id)">
                   <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
                 </button>
                 <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute">
-                  <TaskPopup />
+                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" />
                 </div>
               </div>
             </div>
