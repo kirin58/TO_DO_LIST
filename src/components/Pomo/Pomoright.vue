@@ -1,5 +1,5 @@
 <template>
-    <div class="w-1/3">
+    <div class="w-1/4 min-h-screen">
         <div class="font-semibold text-2xl text-stone-800  px-6 py-10">
             Overview
         </div>

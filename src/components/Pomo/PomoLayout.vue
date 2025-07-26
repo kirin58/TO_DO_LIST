@@ -1,5 +1,5 @@
 <template>
-    <div class="w-2/3">
+    <div class="w-3/4 min-h-screen">
         <div class="flex items-center justify-between px-6 py-8 h-28">
             <div class="font-semibold text-3xl text-stone-800">Pomodoro</div>
             <div class="flex space-x-4 text-2xl text-stone-400">
