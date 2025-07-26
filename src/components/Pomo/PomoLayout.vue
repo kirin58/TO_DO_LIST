@@ -15,13 +15,13 @@
             <button class="bg-orange-200 rounded-full px-6 py-2 text-orange-800">Pomo</button>
             <button class="bg-gray-200 rounded-full px-6 py-2 text-gray-500 cursor-not-allowed ml-2" disabled>Stopwatch</button>
         </div>
-        <div class="flex justify-center mt-4 font-bold text-xl ">
-            <p class="  px-6 py-2 text-stone-400">Focus</p>
+        <div class="flex justify-center mt-4 font-semibold text-xl px-6 py-5 text-stone-400">
+            Focus
         </div>
         <!-- นาฬิกา Pomodoro หรือ Relax -->
-        <div class="w-full flex flex-col items-center justify-center mt-12" v-if="!showRelaxModal">
+        <div class="w-full flex flex-col items-center justify-center " v-if="!showRelaxModal">
             <div class="flex flex-col items-center">
-                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[500px] h-[500px] mb-8 mt-20">
+                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[400px] h-[400px] mb-8 mt-10">
                     <span class="text-8xl font-light select-none">
                         {{ minutes < 10 ? '0' + minutes : minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
                     </span>

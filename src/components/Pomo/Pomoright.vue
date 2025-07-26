@@ -49,7 +49,7 @@
     .overview {
         @apply grid grid-cols-2 
         gap-5  
-        ml-2 mr-2
+        ml-6 mr-6
         ;
     }
     .timer {
