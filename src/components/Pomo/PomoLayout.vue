@@ -15,8 +15,14 @@
             <button class="bg-orange-200 rounded-full px-6 py-2 text-orange-800">Pomo</button>
             <button class="bg-gray-200 rounded-full px-6 py-2 text-gray-500 cursor-not-allowed ml-2" disabled>Stopwatch</button>
         </div>
-        <div class="flex justify-center mt-4 font-semibold text-xl px-6 py-5 text-stone-400">
-            Focus
+        <div class="justify-center flex items-center px-6 py-5 mt-4 text-xl text-stone-400 font-semibold">
+            <p>
+                Focus
+            </p>
+            <button class="ml-2 mt-1 text-2xl">
+                <i class='bx  bx-chevron-right'></i> 
+            </button>
+            
         </div>
         <!-- นาฬิกา Pomodoro หรือ Relax -->
         <div class="w-full flex flex-col items-center justify-center " v-if="!showRelaxModal">

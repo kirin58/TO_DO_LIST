@@ -24,7 +24,7 @@
 
 
         <div class="flex items-center justify-between px-6 py-8 h-28 mt-10">
-            <div class="font-semibold text-2xl text-stone-800  px-6 py-10 ">
+            <div class="font-semibold text-2xl text-stone-800  py-10 ">
                 Focus Record
             </div>
             <div class="flex space-x-4 text-2xl text-stone-400">
