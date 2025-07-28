@@ -4,10 +4,10 @@
             <div class="font-semibold text-3xl text-stone-800">Pomodoro</div>
             <div class="flex space-x-4 text-2xl text-stone-400">
                 <button>
-                    <i class='bx  bx-plus'  ></i> 
+                    <i class='bx  bx-plus'></i> 
                 </button>
                 <button>
-                    <i class='bx  bx-dots-horizontal-rounded'  ></i> 
+                    <i class='bx  bx-dots-horizontal-rounded'></i>
                 </button>
             </div>
         </div>
