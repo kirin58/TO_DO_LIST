@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc, updateDoc , doc } from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc} from 'firebase/firestore'
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
 import draggable from 'vuedraggable'
@@ -31,6 +31,11 @@ async function fetchTasks() {
     id: doc.id,
     ...doc.data()
   }))
+}
+
+async function deleteTask(taskId) {
+  await deleteDoc(doc(db, 'tasks', taskId))
+  fetchTasks()
 }
 onMounted(async () => {
   fetchTasks()
@@ -76,15 +81,20 @@ async function editDate(task,newDate){
 
 const taskMenu = ref(null)
 
-const togglePopup = (id) => {
+function togglePopup(id,event) {
   taskMenu.value = taskMenu.value === id ? null : id
+  if(event){
+    const top = event.target.getBoundingClientRect().top
+    const screenHeight = window.innerHeight
+    popupPosition.value = top < screenHeight / 2 ? 'bottom' : 'top'
+  }
 }
 const closePopup = () => {
   taskMenu.value = null
 }
 </script>
 <template>
-  <div class="w-3/5 min-h-screen">
+  <div class="w-3/5 h-screen">
     <div class="flex flex-col p-6 ">
       <div class="flex items-center p-2 mb-2 justify-between">
         <p class="text-2xl font-black text-stone-600">{{ title }}</p>
@@ -99,7 +109,7 @@ const closePopup = () => {
         <i class='bx  bx-chevron-down text-3xl'  ></i> 
       </div>
     </div>
-    <div class="w-full h-5/6 overflow-y-auto p-5 pr-14">
+    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
@@ -109,14 +119,16 @@ const closePopup = () => {
               <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg focus-within:border-orange-300 ">
                 <div v-if="editID !== t.id" @click="edit(t)" class="w-ful cursor-pointer select-none">{{ t.text }}</div>
                 <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
-                <div v-if="t.dueDate">{{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
+                <div v-if ="t.dueDate && !isNaN(new Date(t.dueDate).getTime())">{{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
               </div>
-              <div>
-                <button @click="() => togglePopup(t.id)">
+              <div class="relative">
+                <button @click="(e) => togglePopup(t.id,e)">
                   <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
                 </button>
-                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute">
-                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" />
+                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="popupPosition === 'top' ? 
+                'bottom-full mb-2' : 'top-full mt-2' ,'right-0'">
+                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
+                    @delete="deleteTask(t.id)"/>
                 </div>
               </div>
             </div>
@@ -126,6 +138,12 @@ const closePopup = () => {
           <div v-else class="flex items-center justify-center h-full">
             <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
           </div>
+    </div>
+    <div class="pl-5">
+      <div class="flex gap-2 items-center">
+        <i class='bx  bx-chevron-down text-2xl'  ></i> 
+        <h1>Completed</h1>
+      </div>
     </div>
   </div>
   <div class="w-1/4 h-screen flex">

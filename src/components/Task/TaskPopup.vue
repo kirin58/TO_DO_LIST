@@ -6,9 +6,10 @@ import '@vuepic/vue-datepicker/dist/main.css'
 const props = defineProps({
     modelValue: String
 })
-const emit = defineEmits(['update:modelValue'])
+const popupPosition = ref('bottom')
+const emit = defineEmits(['update:modelValue','delete'])
 
-const selectDate = ref(props.modelValue)
+const selectDate = ref(props.modelValue || undefined)
 
 watch(selectDate, (newValue) => {
     emit('update:modelValue', newValue)
@@ -83,8 +84,8 @@ const setDateOffset = (days) => {
             <p>Tags</p>
         </div>
         <div class="taskpopup_line"></div>
-        <div class="taskpopup_func text-red-500">
-            <button><i class='bx  bx-trash'></i></button>
+        <div @click="emit('delete')" class="taskpopup_func text-red-500">
+            <button ><i class='bx  bx-trash'></i></button>
             <p>Delete</p>
         </div>
     </div>
