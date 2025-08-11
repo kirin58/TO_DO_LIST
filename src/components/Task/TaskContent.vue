@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc} from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc ,query , where} from 'firebase/firestore'
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
 import draggable from 'vuedraggable'
@@ -13,12 +13,15 @@ defineProps({
 const task = ref('')
 const dueDate = ref('')
 const tasks = ref([])
+const completedTasks = ref([])
 
+//add
 async function addTask() {
   if (!task.value.trim()) return
   await addDoc(collection(db, 'tasks'), {
     text: task.value,
     dueDate: dueDate.value,
+    completed:false,
     createdAt: new Date()
   })
   task.value = ''
@@ -26,13 +29,23 @@ async function addTask() {
 }
 
 async function fetchTasks() {
-  const querySnapshot = await getDocs(collection(db, 'tasks'))
-  tasks.value = querySnapshot.docs.map(doc => ({
+  const incompleteQuery = query(collection(db, 'tasks'), where('completed', '!=', true))
+  const completeQuery = query(collection(db, 'tasks'), where('completed', '==', true))
+
+  const incompleteSnap = await getDocs(incompleteQuery)
+  const completeSnap = await getDocs(completeQuery)
+
+  tasks.value = incompleteSnap.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+  completedTasks.value = completeSnap.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }))
 }
 
+//delete
 async function deleteTask(taskId) {
   await deleteDoc(doc(db, 'tasks', taskId))
   fetchTasks()
@@ -41,6 +54,7 @@ onMounted(async () => {
   fetchTasks()
 })
 
+//edit
 const editID = ref(null)
 const editText = ref('')
 
@@ -64,6 +78,7 @@ async function editSave(task,cancle = false) {
 }
 const editInput = ref(null)
 
+//editวันที่
 watch(editID, async(newvalue) => {
   if (newvalue !== null) {
     await nextTick()
@@ -77,6 +92,15 @@ async function editDate(task,newDate){
     dueDate: newDate
   })
   task.dueDate = newDate
+}
+
+//complete
+async function completeTask(task) {
+  const taskDocRef = doc(db, 'tasks', task.id)
+  await updateDoc(taskDocRef, {
+    completed: true
+  })
+  fetchTasks()
 }
 
 const taskMenu = ref(null)
@@ -115,7 +139,7 @@ const closePopup = () => {
           <template #item="{ element: t }">
             <div class="w-full flex items-center ">
               <button class="drag-handle"><i class='bx bx-menu text-xl text-zinc-300'></i></button>
-              <button><i class='bx bx-checkbox text-4xl text-zinc-300'></i></button>
+              <button @click="completeTask(t)"><i class='bx bx-checkbox text-4xl text-zinc-300'></i></button>
               <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg focus-within:border-orange-300 ">
                 <div v-if="editID !== t.id" @click="edit(t)" class="w-ful cursor-pointer select-none">{{ t.text }}</div>
                 <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
@@ -143,6 +167,12 @@ const closePopup = () => {
       <div class="flex gap-2 items-center">
         <i class='bx  bx-chevron-down text-2xl'  ></i> 
         <h1>Completed</h1>
+      </div>
+      <div v-if="completedTasks.length" class="space-y-2">
+        <div v-for="t in completedTasks" :key="t.id" class="flex items-center text-center" >
+          <i class='bx  bx-checkbox-checked text-4xl text-zinc-300'></i> 
+          <span class="line-through text-black text-lg">{{ t.text }}</span>
+        </div>
       </div>
     </div>
   </div>
