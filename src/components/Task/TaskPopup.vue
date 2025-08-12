@@ -10,7 +10,7 @@ const popupPosition = ref('bottom')
 const emit = defineEmits(['update:modelValue','delete'])
 
 const selectDate = ref(props.modelValue || undefined)
-
+//เลือกวันที่
 watch(selectDate, (newValue) => {
     emit('update:modelValue', newValue)
 })
@@ -21,6 +21,10 @@ const setDateOffset = (days) => {
     const iso = date.toISOString().split('T')[0]
     selectDate.value = iso
     emit('update:modelValue', iso)
+}
+//เลือกธง
+function setPriority(color) {
+  emit('update:priority', color)
 }
 </script>
 <template>
@@ -59,12 +63,18 @@ const setDateOffset = (days) => {
         <div class="my-2">
             <div class="text-sm">Priority</div>
             <div class="taskpopup">
-                <button>
+                <button @click="$emit('set-priority', 'red')">
                     <i class='bx  bx-flag text-red-500'></i>
                 </button>
-                <button><i class='bx  bx-flag text-yellow-300'></i></button>
-                <button><i class='bx  bx-flag text-sky-500'></i></button>
-                <button><i class='bx  bx-flag text-green-400'></i></button>
+                <button @click="$emit('set-priority', 'yellow')">
+                    <i class='bx  bx-flag text-yellow-300'></i>
+                </button>
+                <button @click="$emit('set-priority', 'sky')">
+                    <i class='bx  bx-flag text-sky-500'></i>
+                </button>
+                <button @click="$emit('set-priority', 'green')">
+                    <i class='bx  bx-flag text-green-400'></i>
+                </button>
             </div>
         </div>
         <div class="taskpopup_line"></div>

@@ -4,10 +4,10 @@ import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc ,query , where} 
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
 import draggable from 'vuedraggable'
+import Taskshuffle from './Taskshuffle.vue';
 import { watch,nextTick } from 'vue';
 
 defineProps({
-    title: String,
     emptytask : String
 })
 const task = ref('')
@@ -22,6 +22,7 @@ async function addTask() {
     text: task.value,
     dueDate: dueDate.value,
     completed:false,
+    priority: '',
     createdAt: new Date()
   })
   task.value = ''
@@ -102,6 +103,13 @@ async function completeTask(task) {
   })
   fetchTasks()
 }
+async function uncompleteTask(task) {
+  const taskDocRef = doc(db, 'tasks', task.id)
+  await updateDoc(taskDocRef, {
+    completed: false
+  })
+  fetchTasks()
+}
 
 const taskMenu = ref(null)
 
@@ -116,18 +124,36 @@ function togglePopup(id,event) {
 const closePopup = () => {
   taskMenu.value = null
 }
+
+//ธง
+function flagClass(priority) {
+  switch(priority) {
+    case 'red': return 'bx bx-flag text-red-500 text-xl'
+    case 'yellow': return 'bx bx-flag text-yellow-300 text-xl'
+    case 'sky': return 'bx bx-flag text-sky-500 text-xl'
+    case 'green': return 'bx bx-flag text-green-400 text-xl'
+    default: return ''
+  }
+}
+async function setPriority(task, color) {
+  const taskDocRef = doc(db, 'tasks', task.id)
+  await updateDoc(taskDocRef, { priority: color })
+  fetchTasks()
+}
+
 </script>
 <template>
   <div class="w-3/5 h-screen">
     <div class="flex flex-col p-6 ">
-      <div class="flex items-center p-2 mb-2 justify-between">
-        <p class="text-2xl font-black text-stone-600">{{ title }}</p>
+      <div class="f-center justify-between p-2 mb-2 ">
+        <p class="text-2xl font-black text-stone-600">Inbox</p>
         <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
           <button><i class='bx  bx-shuffle'  ></i></button>
+          <div><Taskshuffle></Taskshuffle></div>
           <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
         </div>
       </div>
-      <div class="flex items-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
+      <div class="f-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
         <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="flex-1 bg-transparent text-slate-500 outline-none"/>
         <input type="date" v-model="dueDate" locale="th" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
         <i class='bx  bx-chevron-down text-3xl'  ></i> 
@@ -137,13 +163,15 @@ const closePopup = () => {
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
-            <div class="w-full flex items-center ">
-              <button class="drag-handle"><i class='bx bx-menu text-xl text-zinc-300'></i></button>
-              <button @click="completeTask(t)"><i class='bx bx-checkbox text-4xl text-zinc-300'></i></button>
-              <div class="w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-black text-lg focus-within:border-orange-300 ">
-                <div v-if="editID !== t.id" @click="edit(t)" class="w-ful cursor-pointer select-none">{{ t.text }}</div>
+            <div class="w-full f-center">
+              <button class="drag-handle icon-btn"><i class='bx bx-menu '></i></button>
+              <button @click="completeTask(t)"><i class='bx bx-checkbox checkbox'></i></button>
+              <div class="task">
+                <span v-if="editID !== t.id" @click="edit(t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
                 <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
-                <div v-if ="t.dueDate && !isNaN(new Date(t.dueDate).getTime())">{{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
+                <div v-if ="t.dueDate && !isNaN(new Date(t.dueDate).getTime()) " class="w-full flex justify-end pr-4" >
+                  {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
+                <i v-if="t.priority" :class="flagClass(t.priority)"></i>
               </div>
               <div class="relative">
                 <button @click="(e) => togglePopup(t.id,e)">
@@ -152,26 +180,26 @@ const closePopup = () => {
                 <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="popupPosition === 'top' ? 
                 'bottom-full mb-2' : 'top-full mt-2' ,'right-0'">
                   <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
-                    @delete="deleteTask(t.id)"/>
+                    @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
                 </div>
               </div>
             </div>
           </template>
         </draggable>
       </div>
-          <div v-else class="flex items-center justify-center h-full">
+      <div v-else class="f-center h-full justify-center ">
             <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
-          </div>
+      </div>
     </div>
     <div class="pl-5">
-      <div class="flex gap-2 items-center">
+      <div class="f-center">
         <i class='bx  bx-chevron-down text-2xl'  ></i> 
         <h1>Completed</h1>
       </div>
       <div v-if="completedTasks.length" class="space-y-2">
-        <div v-for="t in completedTasks" :key="t.id" class="flex items-center text-center" >
-          <i class='bx  bx-checkbox-checked text-4xl text-zinc-300'></i> 
-          <span class="line-through text-black text-lg">{{ t.text }}</span>
+        <div  v-for="t in completedTasks" :key="t.id" class="f-center" >
+          <button @click="uncompleteTask(t)"><i class='bx  bx-checkbox-checked checkbox'></i> </button>
+          <span class="line-through text-lg">{{ t.text }}</span>
         </div>
       </div>
     </div>
@@ -188,5 +216,16 @@ const closePopup = () => {
 .drag-ghost {
    @apply opacity-0 pointer-events-none overflow-hidden;
 }
-
+.task{
+  @apply w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-lg focus-within:border-orange-300 ;
+}
+.checkbox{
+  @apply text-4xl text-zinc-300;
+}
+.f-center{
+  @apply flex items-center;
+}
+.icon-btn {
+  @apply text-4xl text-zinc-300 cursor-pointer;
+}
 </style>
