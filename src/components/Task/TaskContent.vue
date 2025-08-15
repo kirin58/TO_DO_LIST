@@ -14,7 +14,8 @@ const task = ref('')
 const dueDate = ref('')
 const tasks = ref([])
 const completedTasks = ref([])
-
+const taskMenu = ref(null)
+const showShuffle = ref(false) 
 //add
 async function addTask() {
   if (!task.value.trim()) return
@@ -111,8 +112,6 @@ async function uncompleteTask(task) {
   fetchTasks()
 }
 
-const taskMenu = ref(null)
-
 function togglePopup(id,event) {
   taskMenu.value = taskMenu.value === id ? null : id
   if(event){
@@ -123,6 +122,9 @@ function togglePopup(id,event) {
 }
 const closePopup = () => {
   taskMenu.value = null
+}
+function toggleShuffle() {
+  showShuffle.value = !showShuffle.value
 }
 
 //ธง
@@ -148,8 +150,10 @@ async function setPriority(task, color) {
       <div class="f-center justify-between p-2 mb-2 ">
         <p class="text-2xl font-black text-stone-600">Inbox</p>
         <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
-          <button><i class='bx  bx-shuffle'  ></i></button>
-          <div><Taskshuffle></Taskshuffle></div>
+          <div>
+            <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
+            <Taskshuffle v-if="showShuffle" class="absolute z-50"></Taskshuffle>
+          </div>
           <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
         </div>
       </div>
@@ -164,7 +168,7 @@ async function setPriority(task, color) {
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
             <div class="w-full f-center">
-              <button class="drag-handle icon-btn"><i class='bx bx-menu '></i></button>
+              <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
               <button @click="completeTask(t)"><i class='bx bx-checkbox checkbox'></i></button>
               <div class="task">
                 <span v-if="editID !== t.id" @click="edit(t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
@@ -205,7 +209,7 @@ async function setPriority(task, color) {
     </div>
   </div>
   <div class="w-1/4 h-screen flex">
-    <div class="h-screen w-px bg-zinc-300"></div>
+    <div class="h-screen w-px bg-zinc-300 "></div>
     <img src="/src/assets/RightBG.png" class="h-screen">
   </div>
 </template>
@@ -226,6 +230,6 @@ async function setPriority(task, color) {
   @apply flex items-center;
 }
 .icon-btn {
-  @apply text-4xl text-zinc-300 cursor-pointer;
+  @apply flex items-center text-zinc-300 cursor-pointer;
 }
 </style>
