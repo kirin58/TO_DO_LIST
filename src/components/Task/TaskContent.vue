@@ -1,22 +1,19 @@
 <script setup>
 import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc ,query , where} from 'firebase/firestore'
+import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc ,query , where ,orderBy} from 'firebase/firestore'
 import { db } from '@/firebase'
 import TaskPopup from './TaskPopup.vue';
 import draggable from 'vuedraggable'
 import Taskshuffle from './Taskshuffle.vue';
 import { watch,nextTick } from 'vue';
+import { data } from 'autoprefixer';
 
 defineProps({
     emptytask : String
 })
-const task = ref('')
-const dueDate = ref('')
-const tasks = ref([])
-const completedTasks = ref([])
-const taskMenu = ref(null)
-const showShuffle = ref(false) 
 //add
+const task = ref('')
+const tasks = ref([])
 async function addTask() {
   if (!task.value.trim()) return
   await addDoc(collection(db, 'tasks'), {
@@ -37,14 +34,48 @@ async function fetchTasks() {
   const incompleteSnap = await getDocs(incompleteQuery)
   const completeSnap = await getDocs(completeQuery)
 
-  tasks.value = incompleteSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }))
-  completedTasks.value = completeSnap.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }))
+  const formatDate = (dateValue) => {
+    if (!dateValue) return ''
+    let d = dateValue
+
+    if (d.toDate) d = d.toDate()
+
+    if (d instanceof Date && !isNaN(d)) {
+      return d.toISOString().split('T')[0]
+    }
+
+    return''
+  }
+
+  tasks.value = incompleteSnap.docs.map(doc => {
+    const data = doc.data()
+    return{
+      id: doc.id,
+      ...data,
+      dueDate: formatDate(data.dueDate)
+    }
+  })
+  
+  completedTasks.value = completeSnap.docs.map(doc => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      ...data,
+      dueDate: formatDate(data.dueDate)
+    }
+  })
+
+  if (sortByDate.value) {
+    const sortFn = (a, b) => {
+      if (!a.dueDate && !b.dueDate) return 0
+      if (!a.dueDate) return 1   // a ไม่มีวันที่ → ไปท้าย
+      if (!b.dueDate) return -1  // b ไม่มีวันที่ → ไปท้าย
+      return new Date(a.dueDate) - new Date(b.dueDate)
+    }
+
+    tasks.value.sort(sortFn)
+    completedTasks.value.sort(sortFn)
+  }
 }
 
 //delete
@@ -81,6 +112,7 @@ async function editSave(task,cancle = false) {
 const editInput = ref(null)
 
 //editวันที่
+const dueDate = ref('')
 watch(editID, async(newvalue) => {
   if (newvalue !== null) {
     await nextTick()
@@ -97,6 +129,7 @@ async function editDate(task,newDate){
 }
 
 //complete
+const completedTasks = ref([])
 async function completeTask(task) {
   const taskDocRef = doc(db, 'tasks', task.id)
   await updateDoc(taskDocRef, {
@@ -112,6 +145,8 @@ async function uncompleteTask(task) {
   fetchTasks()
 }
 
+//popup
+const taskMenu = ref(null)
 function togglePopup(id,event) {
   taskMenu.value = taskMenu.value === id ? null : id
   if(event){
@@ -123,8 +158,21 @@ function togglePopup(id,event) {
 const closePopup = () => {
   taskMenu.value = null
 }
+
+const showShuffle = ref(false)
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
+}
+
+const sortByDate = ref(false)
+
+function handleSelectType(type) {
+  if (type === 'Date') {
+    sortByDate.value = true
+  } else {
+    sortByDate.value = false
+  }
+  fetchTasks()
 }
 
 //ธง
@@ -142,8 +190,8 @@ async function setPriority(task, color) {
   await updateDoc(taskDocRef, { priority: color })
   fetchTasks()
 }
-
 </script>
+
 <template>
   <div class="w-3/5 h-screen">
     <div class="flex flex-col p-6 ">
@@ -152,7 +200,7 @@ async function setPriority(task, color) {
         <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
           <div>
             <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
-            <Taskshuffle v-if="showShuffle" class="absolute z-50"></Taskshuffle>
+            <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
           </div>
           <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
         </div>
