@@ -1,183 +1,131 @@
 <script setup>
-import { ref, onMounted  } from 'vue';
-import { collection, getDocs, addDoc, updateDoc ,deleteDoc, doc ,query , where ,orderBy} from 'firebase/firestore'
-import { db } from '@/firebase'
-import TaskPopup from './TaskPopup.vue';
+import { ref, onMounted, watch, nextTick } from 'vue'
+import TaskPopup from './TaskPopup.vue'
 import draggable from 'vuedraggable'
-import Taskshuffle from './Taskshuffle.vue';
-import { watch,nextTick } from 'vue';
-import { data } from 'autoprefixer';
+import Taskshuffle from './Taskshuffle.vue'
 
 defineProps({
-    emptytask : String
+  emptytask: String
 })
-//add
+
 const task = ref('')
 const tasks = ref([])
-async function addTask() {
-  if (!task.value.trim()) return
-  await addDoc(collection(db, 'tasks'), {
-    text: task.value,
-    dueDate: dueDate.value,
-    completed:false,
-    priority: '',
-    createdAt: new Date()
-  })
-  task.value = ''
-  fetchTasks()
+const completedTasks = ref([])
+const dueDate = ref('')
+const editID = ref(null)
+const editText = ref('')
+const editInput = ref(null)
+const taskMenu = ref(null)
+const showShuffle = ref(false)
+const sortByDate = ref(false)
+const popupPosition = ref('bottom')
+
+function saveTasks() {
+  localStorage.setItem('tasks', JSON.stringify({
+    incomplete: tasks.value,
+    complete: completedTasks.value
+  }))
 }
 
-async function fetchTasks() {
-  const incompleteQuery = query(collection(db, 'tasks'), where('completed', '!=', true))
-  const completeQuery = query(collection(db, 'tasks'), where('completed', '==', true))
-
-  const incompleteSnap = await getDocs(incompleteQuery)
-  const completeSnap = await getDocs(completeQuery)
-
-  const formatDate = (dateValue) => {
-    if (!dateValue) return ''
-    let d = dateValue
-
-    if (d.toDate) d = d.toDate()
-
-    if (d instanceof Date && !isNaN(d)) {
-      return d.toISOString().split('T')[0]
-    }
-
-    return''
-  }
-
-  tasks.value = incompleteSnap.docs.map(doc => {
-    const data = doc.data()
-    return{
-      id: doc.id,
-      ...data,
-      dueDate: formatDate(data.dueDate)
-    }
-  })
-  
-  completedTasks.value = completeSnap.docs.map(doc => {
-    const data = doc.data()
-    return {
-      id: doc.id,
-      ...data,
-      dueDate: formatDate(data.dueDate)
-    }
-  })
+function fetchTasks() {
+  const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
+  tasks.value = stored.incomplete || []
+  completedTasks.value = stored.complete || []
 
   if (sortByDate.value) {
     const sortFn = (a, b) => {
       if (!a.dueDate && !b.dueDate) return 0
-      if (!a.dueDate) return 1   // a ไม่มีวันที่ → ไปท้าย
-      if (!b.dueDate) return -1  // b ไม่มีวันที่ → ไปท้าย
+      if (!a.dueDate) return 1
+      if (!b.dueDate) return -1
       return new Date(a.dueDate) - new Date(b.dueDate)
     }
-
     tasks.value.sort(sortFn)
     completedTasks.value.sort(sortFn)
   }
 }
 
-//delete
-async function deleteTask(taskId) {
-  await deleteDoc(doc(db, 'tasks', taskId))
-  fetchTasks()
-}
-onMounted(async () => {
-  fetchTasks()
-})
+onMounted(fetchTasks)
 
-//edit
-const editID = ref(null)
-const editText = ref('')
-
-function edit(task){
-  editID.value = task.id
-  editText.value = task.text
+function addTask() {
+  if (!task.value.trim()) return
+  tasks.value.push({
+    id: Date.now(),
+    text: task.value,
+    dueDate: dueDate.value || '',
+    completed: false,
+    priority: ''
+  })
+  task.value = ''
+  dueDate.value = ''
+  saveTasks()
 }
-async function editSave(task,cancle = false) {
-  if (cancle || editText.value.trim() === ''){
+
+function deleteTask(taskId) {
+  tasks.value = tasks.value.filter(t => t.id !== taskId)
+  completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
+  saveTasks()
+}
+
+function edit(t) {
+  editID.value = t.id
+  editText.value = t.text
+}
+function editSave(task, cancel = false) {
+  if (cancel || editText.value.trim() === '') {
     editID.value = null
     editText.value = ''
     return
   }
-  const taskDocRef = doc(db,'tasks',task.id)
-  await updateDoc(taskDocRef,{
-    text: editText.value
-  })
+  task.text = editText.value
   editID.value = null
   editText.value = ''
-  fetchTasks()
+  saveTasks()
 }
-const editInput = ref(null)
-
-//editวันที่
-const dueDate = ref('')
-watch(editID, async(newvalue) => {
+watch(editID, async (newvalue) => {
   if (newvalue !== null) {
     await nextTick()
     editInput.value?.focus()
   }
 })
 
-async function editDate(task,newDate){
-  const taskDocRef = doc(db,'tasks',task.id)
-  await updateDoc(taskDocRef,{
-    dueDate: newDate
-  })
+function editDate(task, newDate) {
   task.dueDate = newDate
+  saveTasks()
 }
 
-//complete
-const completedTasks = ref([])
-async function completeTask(task) {
-  const taskDocRef = doc(db, 'tasks', task.id)
-  await updateDoc(taskDocRef, {
-    completed: true
-  })
-  fetchTasks()
+function completeTask(task) {
+  task.completed = true
+  tasks.value = tasks.value.filter(t => t.id !== task.id)
+  completedTasks.value.push(task)
+  saveTasks()
 }
-async function uncompleteTask(task) {
-  const taskDocRef = doc(db, 'tasks', task.id)
-  await updateDoc(taskDocRef, {
-    completed: false
-  })
-  fetchTasks()
+function uncompleteTask(task) {
+  task.completed = false
+  completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
+  tasks.value.push(task)
+  saveTasks()
 }
 
-//popup
-const taskMenu = ref(null)
-function togglePopup(id,event) {
+function togglePopup(id, event) {
   taskMenu.value = taskMenu.value === id ? null : id
-  if(event){
+  if (event) {
     const top = event.target.getBoundingClientRect().top
     const screenHeight = window.innerHeight
     popupPosition.value = top < screenHeight / 2 ? 'bottom' : 'top'
   }
 }
-const closePopup = () => {
-  taskMenu.value = null
-}
+const closePopup = () => { taskMenu.value = null }
 
-const showShuffle = ref(false)
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
 }
-
-const sortByDate = ref(false)
-
 function handleSelectType(type) {
-  if (type === 'Date') {
-    sortByDate.value = true
-  } else {
-    sortByDate.value = false
-  }
+  sortByDate.value = (type === 'Date')
   fetchTasks()
 }
 
-//ธง
 function flagClass(priority) {
-  switch(priority) {
+  switch (priority) {
     case 'red': return 'bx bx-flag text-red-500 text-xl'
     case 'yellow': return 'bx bx-flag text-yellow-300 text-xl'
     case 'sky': return 'bx bx-flag text-sky-500 text-xl'
@@ -185,10 +133,9 @@ function flagClass(priority) {
     default: return ''
   }
 }
-async function setPriority(task, color) {
-  const taskDocRef = doc(db, 'tasks', task.id)
-  await updateDoc(taskDocRef, { priority: color })
-  fetchTasks()
+function setPriority(task, color) {
+  task.priority = color
+  saveTasks()
 }
 </script>
 
