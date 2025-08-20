@@ -18,6 +18,7 @@ const editInput = ref(null)
 const taskMenu = ref(null)
 const showShuffle = ref(false)
 const sortByDate = ref(false)
+const sortByPriority = ref(false)
 const popupPosition = ref('bottom')
 
 function saveTasks() {
@@ -27,20 +28,29 @@ function saveTasks() {
   }))
 }
 
+function sortByDateFn(a, b) {
+  if (!a.dueDate && !b.dueDate) return 0
+  if (!a.dueDate) return 1
+  if (!b.dueDate) return -1
+  return new Date(a.dueDate) - new Date(b.dueDate)
+}
+
+function sortByPriorityFn(a, b) {
+  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+}
+
 function fetchTasks() {
   const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
   tasks.value = stored.incomplete || []
   completedTasks.value = stored.complete || []
 
   if (sortByDate.value) {
-    const sortFn = (a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0
-      if (!a.dueDate) return 1
-      if (!b.dueDate) return -1
-      return new Date(a.dueDate) - new Date(b.dueDate)
-    }
-    tasks.value.sort(sortFn)
-    completedTasks.value.sort(sortFn)
+    tasks.value.sort(sortByDateFn)
+    completedTasks.value.sort(sortByDateFn)
+  } else if (sortByPriority.value) {
+    tasks.value.sort(sortByPriorityFn)
+    completedTasks.value.sort(sortByPriorityFn)
   }
 }
 
@@ -58,12 +68,14 @@ function addTask() {
   task.value = ''
   dueDate.value = ''
   saveTasks()
+  fetchTasks()
 }
 
 function deleteTask(taskId) {
   tasks.value = tasks.value.filter(t => t.id !== taskId)
   completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
   saveTasks()
+  fetchTasks()
 }
 
 function edit(t) {
@@ -91,6 +103,7 @@ watch(editID, async (newvalue) => {
 function editDate(task, newDate) {
   task.dueDate = newDate
   saveTasks()
+  fetchTasks()
 }
 
 function completeTask(task) {
@@ -104,6 +117,7 @@ function uncompleteTask(task) {
   completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
   tasks.value.push(task)
   saveTasks()
+  fetchTasks()
 }
 
 function togglePopup(id, event) {
@@ -119,10 +133,17 @@ const closePopup = () => { taskMenu.value = null }
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
 }
+
 function handleSelectType(type) {
-  sortByDate.value = (type === 'Date')
+  sortByDate.value = false
+  sortByPriority.value = false
+
+  if (type === 'Date') sortByDate.value = true
+  if (type === 'Priority') sortByPriority.value = true
+
   fetchTasks()
 }
+
 
 function flagClass(priority) {
   switch (priority) {
@@ -136,6 +157,7 @@ function flagClass(priority) {
 function setPriority(task, color) {
   task.priority = color
   saveTasks()
+  fetchTasks()
 }
 </script>
 
@@ -158,7 +180,7 @@ function setPriority(task, color) {
         <i class='bx  bx-chevron-down text-3xl'  ></i> 
       </div>
     </div>
-    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
+    <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
