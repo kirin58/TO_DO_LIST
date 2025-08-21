@@ -19,6 +19,7 @@ const taskMenu = ref(null)
 const showShuffle = ref(false)
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
+const sortByNone = ref(false)
 const popupPosition = ref('bottom')
 
 function saveTasks() {
@@ -40,6 +41,10 @@ function sortByPriorityFn(a, b) {
   return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
 }
 
+function sortByNoneFn(a,b){
+  return 0;
+}
+
 function fetchTasks() {
   const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
   tasks.value = stored.incomplete || []
@@ -51,6 +56,9 @@ function fetchTasks() {
   } else if (sortByPriority.value) {
     tasks.value.sort(sortByPriorityFn)
     completedTasks.value.sort(sortByPriorityFn)
+  } else if (sortByNone.value) {
+    tasks.value.sort(sortByNoneFn)
+    completedTasks.value.sort(sortByNoneFn)
   }
 }
 
@@ -137,9 +145,11 @@ function toggleShuffle() {
 function handleSelectType(type) {
   sortByDate.value = false
   sortByPriority.value = false
+  sortByNone.value = false
 
   if (type === 'Date') sortByDate.value = true
   if (type === 'Priority') sortByPriority.value = true
+  if (type === 'None') sortByNone.value = true
 
   fetchTasks()
 }
