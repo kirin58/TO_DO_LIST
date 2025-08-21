@@ -16,6 +16,7 @@ const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
 const taskMenu = ref(null)
+const newTaskPriority = ref('')
 const showShuffle = ref(false)
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
@@ -71,10 +72,11 @@ function addTask() {
     text: task.value,
     dueDate: dueDate.value || '',
     completed: false,
-    priority: ''
+    priority: newTaskPriority.value || ''
   })
   task.value = ''
   dueDate.value = ''
+  newTaskPriority.value = ''
   saveTasks()
   fetchTasks()
 }
@@ -176,18 +178,24 @@ function setPriority(task, color) {
     <div class="flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p class="text-2xl font-black text-stone-600">Inbox</p>
-        <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
-          <div>
-            <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
-            <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
-          </div>
-          <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
+        <div class="text-stone-400 text-2xl">
+          <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
+          <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
       <div class="f-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="flex-1 bg-transparent text-slate-500 outline-none"/>
-        <input type="date" v-model="dueDate" locale="th" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
-        <i class='bx  bx-chevron-down text-3xl'  ></i> 
+        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="w-3/5 bg-transparent text-slate-500 outline-none"/>
+        <i v-if="newTaskPriority" :class="flagClass(newTaskPriority)" class="w-1/5 ml-2"></i>
+        <input type="date" v-model="dueDate" locale="th" class="w-1/5 flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+        <div class="relative">
+          <button @click="(e) => togglePopup('new',e)">
+            <i class='bx  bx-chevron-down text-3xl'  ></i> 
+          </button>
+          <div v-if="taskMenu === 'new'" @click.self="closePopup" class="absolute z-99" 
+          :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2', 'right-0']"> 
+            <TaskPopup isNew @set-priority="(color) => { newTaskPriority.value = color; closePopup(); }" />
+          </div>
+        </div>
       </div>
     </div>
     <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">

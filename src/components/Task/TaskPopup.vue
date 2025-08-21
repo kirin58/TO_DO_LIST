@@ -4,7 +4,8 @@ import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 const props = defineProps({
-    modelValue: String
+    modelValue: String ,
+    isNew : {type:Boolean,default:false}
 })
 const popupPosition = ref('bottom')
 const emit = defineEmits(['update:modelValue','delete'])
@@ -24,42 +25,44 @@ const setDateOffset = (days) => {
 }
 //เลือกธง
 function setPriority(color) {
-  emit('update:priority', color)
+  emit('set-priority', color)
 }
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
-        <div class="my-2">
-            <div class="text-sm">Date</div>
-            <div class="taskpopup">
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(0)">
-                        <i class='bx bxs-calendar-heart'></i>
-                    </button>
+        <template v-if="!props.isNew">
+            <div class="my-2">
+                <div class="text-sm">Date</div>
+                <div class="taskpopup">
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(0)">
+                            <i class='bx bxs-calendar-heart'></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(1)">
+                            <i class='bx  bx-calendar-week'  ></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(7)">
+                            <i class='bx  bxs-calendar-minus'  ></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <Datepicker :placement="'left-start'" :auto-apply="true":enable-time-picker="false"locale="th"
+                        input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
+                            <template #trigger>
+                                <button type="button" class="text-x">
+                                    <i class='bx  bxs-calendar'  ></i>
+                                </button>
+                            </template>
+                        </Datepicker>
+                    </div>    
                 </div>
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(1)">
-                        <i class='bx  bx-calendar-week'  ></i>
-                    </button>
-                </div>
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(7)">
-                        <i class='bx  bxs-calendar-minus'  ></i>
-                    </button>
-                </div>
-                <div class="relative flex items-center">
-                    <Datepicker :placement="'left-start'" :auto-apply="true":enable-time-picker="false"locale="th"
-                    input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
-                        <template #trigger>
-                            <button type="button" class="text-x">
-                            <i class='bx  bxs-calendar'  ></i>
-                            </button>
-                        </template>
-                    </Datepicker>
-                </div>    
             </div>
-        </div>
-        <div class="taskpopup_line"></div>
+            <div class="taskpopup_line"></div>
+        </template>
         <div class="my-2">
             <div class="text-sm">Priority</div>
             <div class="taskpopup">
@@ -93,11 +96,13 @@ function setPriority(color) {
             <button>#</button>
             <p>Tags</p>
         </div>
-        <div class="taskpopup_line"></div>
-        <div @click="emit('delete')" class="taskpopup_func text-red-500">
-            <button ><i class='bx  bx-trash'></i></button>
-            <p>Delete</p>
-        </div>
+        <template v-if="!props.isNew">
+            <div class="taskpopup_line"></div>
+            <div @click="emit('delete')" class="taskpopup_func text-red-500">
+                <button ><i class='bx  bx-trash'></i></button>
+                <p>Delete</p>
+            </div>
+        </template>
     </div>
 </template>
 <style scoped>
