@@ -1,3 +1,20 @@
+<script setup>
+import {ref} from 'vue'
+import Listcomp from '../Lists/Listcomp.vue';
+import tagcomp from '../tags/tagcomp.vue';
+
+const lists = ref([])
+const showListInput = ref(false)
+
+const tags
+
+function handleAddList(newList){
+    lists.value.push(newList)
+}
+function deleteList(id){
+    lists.value = lists.value.filter(l => l.id !== id) 
+}
+</script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
         <div class="bar">
@@ -10,11 +27,24 @@
                 <div class="line"><div></div></div>
                 <div class="list">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right ' exact-active-class="task_active"></i><p class="text-sm">List</p></div>
-                    <div class="flex items-center"><i class='bx  bx-dots-horizontal ' exact-active-class="task_active"></i><i class='bx  bx-plus'  ></i> </div>
+                    <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i> </div>
                 </div>
+                <listcomp v-if="showListInput" title="Create List" @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
+                <div>
+                    <div v-for="l in lists" :key="l.id" class="flex items-center justify-between mx-3 my-2">
+                    <span>{{ l.text }} </span><button @click="deleteList(l.id)"><i class='bx  bx-trash text-red-500'></i></button>
+                    </div>
+                </div>
+                
                 <div class="list">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right 'exact-active-class="task_active"></i> <p class="text-sm">Tags</p></div>
-                    <div class="flex items-center"><i class='bx  bx-dots-horizontal ' exact-active-class="task_active"></i><i class='bx  bx-plus'  ></i> </div>
+                    <div><i class='bx  bx-plus'  ></i> </div>
+                </div>
+                    <listcomp v-if="showListInput" @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
+                <div>
+                    <div v-for="l in lists" :key="l.id" class="flex items-center justify-between mx-3 my-2">
+                    <span>{{ l.text }} </span><button @click="deleteList(l.id)"><i class='bx  bx-trash text-red-500'></i></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -31,10 +61,10 @@
     @apply h-1/2 w-full flex flex-col;
 }
 .line {
-    @apply h-px w-full flex flex-col bg-orange-300 my-6 ;
+    @apply h-px w-full flex flex-col bg-orange-300 ;
 }
 .taskmenu{
-    @apply flex items-center gap-2 hover:bg-orange-200 m-1 mb-2 p-2 rounded-md text-2xl text-gray-700;
+    @apply flex items-center  gap-2 hover:bg-orange-200 m-1 mb-2 p-2 rounded-md text-2xl text-gray-700;
 }
 .list{
     @apply flex flex-row items-center justify-between hover:bg-orange-200 m-1 mb-2 p-1 rounded-md text-base text-gray-700;

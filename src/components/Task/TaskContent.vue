@@ -10,7 +10,8 @@ defineProps({
 
 const task = ref('')
 const tasks = ref([])
-const completedTasks = ref([])
+const completedTasks = ref([  { id: 1, text: 'Task 1' },{ id: 2, text: 'Task 2' }])
+const showCompleted = ref(true)
 const dueDate = ref('')
 const editID = ref(null)
 const editText = ref('')
@@ -156,7 +157,6 @@ function handleSelectType(type) {
   fetchTasks()
 }
 
-
 function flagClass(priority) {
   switch (priority) {
     case 'red': return 'bx bx-flag text-red-500 text-xl'
@@ -167,7 +167,7 @@ function flagClass(priority) {
   }
 }
 function setPriority(task, color) {
-  task.priority = color
+  emit('set-priority', color)
   saveTasks()
   fetchTasks()
 }
@@ -183,22 +183,12 @@ function setPriority(task, color) {
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
-      <div class="f-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="w-3/5 bg-transparent text-slate-500 outline-none"/>
-        <i v-if="newTaskPriority" :class="flagClass(newTaskPriority)" class="w-1/5 ml-2"></i>
-        <input type="date" v-model="dueDate" locale="th" class="w-1/5 flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
-        <div class="relative">
-          <button @click="(e) => togglePopup('new',e)">
-            <i class='bx  bx-chevron-down text-3xl'  ></i> 
-          </button>
-          <div v-if="taskMenu === 'new'" @click.self="closePopup" class="absolute z-99" 
-          :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2', 'right-0']"> 
-            <TaskPopup isNew @set-priority="(color) => { newTaskPriority.value = color; closePopup(); }" />
-          </div>
-        </div>
+      <div class="f-center justify-between bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
+        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="bg-transparent text-slate-500 outline-none"/>
+        <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
       </div>
     </div>
-    <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">
+    <div class="w-full overflow-y-auto pl-5 pr-14">
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
@@ -231,15 +221,25 @@ function setPriority(task, color) {
       </div>
     </div>
     <div class="pl-5">
-      <div class="f-center">
-        <i class='bx  bx-chevron-down text-2xl'  ></i> 
-        <h1>Completed</h1>
+      <div class="f-center" @click="showCompleted = !showCompleted">
+        <i :class="showCompleted ? 'bx bx-chevron-down text-2xl':'bx bx-chevron-right text-2xl'"></i>
+        <h1>{{ showCompleted ? 'Show Completed' : 'Hide Completed' }}</h1>
       </div>
-      <div v-if="completedTasks.length" class="space-y-2">
-        <div  v-for="t in completedTasks" :key="t.id" class="f-center" >
-          <button @click="uncompleteTask(t)"><i class='bx  bx-checkbox-checked checkbox'></i> </button>
-          <span class="line-through text-lg">{{ t.text }}</span>
-        </div>
+      <div v-if="showCompleted && completedTasks.length" class="space-y-2">
+        <draggable v-model="completedTasks" item-key="id" class="space-y-2" handle=".drag-handle"   
+          :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
+          <template #item="{ element: t }">
+            <div :key="t.id" class="f-center">
+              <button class="drag-handle icon-btn">
+                <i class='bx bx-menu text-2xl'></i>
+              </button>
+              <button @click="uncompleteTask(t)">
+                <i class='bx bx-checkbox-checked checkbox'></i>
+              </button>
+              <span class="line-through text-lg">{{ t.text }}</span>
+            </div>
+          </template>
+        </draggable>
       </div>
     </div>
   </div>

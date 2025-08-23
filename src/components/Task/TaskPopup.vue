@@ -8,7 +8,7 @@ const props = defineProps({
     isNew : {type:Boolean,default:false}
 })
 const popupPosition = ref('bottom')
-const emit = defineEmits(['update:modelValue','delete'])
+const emit = defineEmits(['update:modelValue','delete','set-priority'])
 
 const selectDate = ref(props.modelValue || undefined)
 //เลือกวันที่
