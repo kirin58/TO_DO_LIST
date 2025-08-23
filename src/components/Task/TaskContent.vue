@@ -16,8 +16,11 @@ const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
 const taskMenu = ref(null)
+const newTaskPriority = ref('')
 const showShuffle = ref(false)
 const sortByDate = ref(false)
+const sortByPriority = ref(false)
+const sortByNone = ref(false)
 const popupPosition = ref('bottom')
 
 function saveTasks() {
@@ -27,20 +30,36 @@ function saveTasks() {
   }))
 }
 
+function sortByDateFn(a, b) {
+  if (!a.dueDate && !b.dueDate) return 0
+  if (!a.dueDate) return 1
+  if (!b.dueDate) return -1
+  return new Date(a.dueDate) - new Date(b.dueDate)
+}
+
+function sortByPriorityFn(a, b) {
+  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+}
+
+function sortByNoneFn(a,b){
+  return 0;
+}
+
 function fetchTasks() {
   const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
   tasks.value = stored.incomplete || []
   completedTasks.value = stored.complete || []
 
   if (sortByDate.value) {
-    const sortFn = (a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0
-      if (!a.dueDate) return 1
-      if (!b.dueDate) return -1
-      return new Date(a.dueDate) - new Date(b.dueDate)
-    }
-    tasks.value.sort(sortFn)
-    completedTasks.value.sort(sortFn)
+    tasks.value.sort(sortByDateFn)
+    completedTasks.value.sort(sortByDateFn)
+  } else if (sortByPriority.value) {
+    tasks.value.sort(sortByPriorityFn)
+    completedTasks.value.sort(sortByPriorityFn)
+  } else if (sortByNone.value) {
+    tasks.value.sort(sortByNoneFn)
+    completedTasks.value.sort(sortByNoneFn)
   }
 }
 
@@ -53,17 +72,20 @@ function addTask() {
     text: task.value,
     dueDate: dueDate.value || '',
     completed: false,
-    priority: ''
+    priority: newTaskPriority.value || ''
   })
   task.value = ''
   dueDate.value = ''
+  newTaskPriority.value = ''
   saveTasks()
+  fetchTasks()
 }
 
 function deleteTask(taskId) {
   tasks.value = tasks.value.filter(t => t.id !== taskId)
   completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
   saveTasks()
+  fetchTasks()
 }
 
 function edit(t) {
@@ -91,6 +113,7 @@ watch(editID, async (newvalue) => {
 function editDate(task, newDate) {
   task.dueDate = newDate
   saveTasks()
+  fetchTasks()
 }
 
 function completeTask(task) {
@@ -104,6 +127,7 @@ function uncompleteTask(task) {
   completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
   tasks.value.push(task)
   saveTasks()
+  fetchTasks()
 }
 
 function togglePopup(id, event) {
@@ -119,10 +143,19 @@ const closePopup = () => { taskMenu.value = null }
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
 }
+
 function handleSelectType(type) {
-  sortByDate.value = (type === 'Date')
+  sortByDate.value = false
+  sortByPriority.value = false
+  sortByNone.value = false
+
+  if (type === 'Date') sortByDate.value = true
+  if (type === 'Priority') sortByPriority.value = true
+  if (type === 'None') sortByNone.value = true
+
   fetchTasks()
 }
+
 
 function flagClass(priority) {
   switch (priority) {
@@ -136,6 +169,7 @@ function flagClass(priority) {
 function setPriority(task, color) {
   task.priority = color
   saveTasks()
+  fetchTasks()
 }
 </script>
 
@@ -144,21 +178,27 @@ function setPriority(task, color) {
     <div class="flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p class="text-2xl font-black text-stone-600">Inbox</p>
-        <div class="w-1/2 flex justify-end gap-4 text-stone-400 text-2xl">
-          <div>
-            <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
-            <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
-          </div>
-          <button><i class='bx  bx-dots-horizontal-rounded'  ></i></button>
+        <div class="text-stone-400 text-2xl">
+          <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
+          <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
       <div class="f-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="flex-1 bg-transparent text-slate-500 outline-none"/>
-        <input type="date" v-model="dueDate" locale="th" class="ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
-        <i class='bx  bx-chevron-down text-3xl'  ></i> 
+        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="w-3/5 bg-transparent text-slate-500 outline-none"/>
+        <i v-if="newTaskPriority" :class="flagClass(newTaskPriority)" class="w-1/5 ml-2"></i>
+        <input type="date" v-model="dueDate" locale="th" class="w-1/5 flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+        <div class="relative">
+          <button @click="(e) => togglePopup('new',e)">
+            <i class='bx  bx-chevron-down text-3xl'  ></i> 
+          </button>
+          <div v-if="taskMenu === 'new'" @click.self="closePopup" class="absolute z-99" 
+          :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2', 'right-0']"> 
+            <TaskPopup isNew @set-priority="(color) => { newTaskPriority.value = color; closePopup(); }" />
+          </div>
+        </div>
       </div>
     </div>
-    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
+    <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">
       <div v-if="tasks.length" >
         <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">

@@ -22,15 +22,46 @@
             <button class="ml-2 mt-1 text-2xl">
                 <i class='bx  bx-chevron-right'></i> 
             </button>
-            
         </div>
         <!-- นาฬิกา Pomodoro หรือ Relax -->
-        <div class="w-full flex flex-col items-center justify-center " v-if="!showRelaxModal">
+        <div class="w-full flex flex-col items-center justify-center text-xl" v-if="!showRelaxModal">
             <div class="flex flex-col items-center">
-                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[400px] h-[400px] mb-8 mt-10">
-                    <span class="text-8xl font-light select-none">
+                <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[400px] h-[400px] mb-8 mt-10 relative">
+                    <span
+                        class="font-light select-none flex items-center justify-center w-full h-full text-7xl leading-none"
+                        style="line-height: 1; text-align: center;"
+                    >
                         {{ minutes < 10 ? '0' + minutes : minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
                     </span>
+                    <!-- ปุ่มตั้งเวลา -->
+                    <button @click="openTimePopup" class="absolute right-6 bottom-6 text-zinc-400 hover:text-orange-400">
+                        <i class='bx bx-cog text-3xl'></i>
+                    </button>
+                    <!-- Popup ตั้งเวลา -->
+                    <div v-if="showTimePopup" class="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2">
+                        <div
+                            class="bg-white rounded-full shadow-lg flex flex-col items-center justify-center  gray-200"
+                            style="width:150px; height:150px; display: flex; justify-content: center; align-items: center;"
+                        >
+                            <div class="flex flex-col items-center justify-center h-full w-full">
+                                <div class="flex items-center justify-center gap-0 mb-0 w-full">
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="99"
+                                        v-model.number="inputMinutes"
+                                        class="text-center border-b border-gray-300 outline-none font-semibold"
+                                        style="font-size:1.8rem; width: 45px; height: 2.5rem; line-height: 2.2rem;"
+                                    />
+                                    <span class="text-gray-500 text-xl ml-1">Min</span>
+                                </div>
+                                <div class="flex gap-2 mt-2">
+                                    <button @click="closeTimePopup" class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-sm">Cancel</button>
+                                    <button @click="setTime" class="px-3 py-1 rounded bg-orange-300 text-white text-sm font-semibold">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <!-- Pomodoro Mode -->
@@ -83,8 +114,8 @@
             </template>
         </div>
         <!-- Relax Modal -->
-        <div v-if="showRelaxModal" class="inset-0 flex flex-col items-center justify-center z-50">
-            <img src="/public/tomato.png" alt="tomato" class="w-1/3  mt-10" />
+        <div v-if="showRelaxModal" class="inset-0 flex flex-col items-center justify-center">
+            <img src="/public/tomato.png" alt="tomato" class="w-1/4  mt-10" />
             <div class="text-2xl font-bold mb-2">You've got a Pomo.</div>
             <div class="text-gray-500 mb-6">Relax for 5 minutes</div>
             <button class="w-56 bg-emerald-300 hover:bg-emerald-400 text-white font-semibold text-xl rounded-full px-10 py-3 mb-3" @click="relax">Relax</button>
@@ -108,6 +139,9 @@ export default {
             isPaused: false,
             showRelaxModal: false,
             isRelaxing: false, // โหมดพัก
+            // เพิ่มสำหรับ popup ตั้งเวลา
+            showTimePopup: false,
+            inputMinutes: 25,
         };
     },
     methods: {
@@ -173,7 +207,21 @@ export default {
         exit() {
             this.showRelaxModal = false;
             this.endTimer();
-        }
+        },
+        openTimePopup() {
+            this.inputMinutes = this.minutes;
+            this.showTimePopup = true;
+        },
+        closeTimePopup() {
+            this.showTimePopup = false;
+        },
+        setTime() {
+            if (this.inputMinutes > 0) {
+                this.minutes = this.inputMinutes;
+                this.seconds = 0;
+            }
+            this.showTimePopup = false;
+        },
     },
     mounted() {
         this.minutes = 25;
