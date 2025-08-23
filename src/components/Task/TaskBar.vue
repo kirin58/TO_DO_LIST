@@ -5,14 +5,20 @@ import tagcomp from '../tags/tagcomp.vue';
 
 const lists = ref([])
 const showListInput = ref(false)
-
-const tags
-
 function handleAddList(newList){
     lists.value.push(newList)
 }
 function deleteList(id){
     lists.value = lists.value.filter(l => l.id !== id) 
+}
+
+const tags = ref([])
+const showTagInput = ref(false)
+function handleAddTag(newTag){
+    tags.value.push(newTag)
+}
+function deleteTags(id){
+    tags.value = tags.value.filter(t => t.id !== id) 
 }
 </script>
 <template>
@@ -29,22 +35,22 @@ function deleteList(id){
                     <div class="flex items-center"><i class='bx  bxs-chevron-right ' exact-active-class="task_active"></i><p class="text-sm">List</p></div>
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i> </div>
                 </div>
-                <listcomp v-if="showListInput" title="Create List" @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
+                <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
                 <div>
-                    <div v-for="l in lists" :key="l.id" class="flex items-center justify-between mx-3 my-2">
+                    <router-link to="#" v-for="l in lists" :key="l.id" class="flex items-center justify-between mx-3 my-2 text-sm">
                     <span>{{ l.text }} </span><button @click="deleteList(l.id)"><i class='bx  bx-trash text-red-500'></i></button>
-                    </div>
+                    </router-link>
                 </div>
                 
                 <div class="list">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right 'exact-active-class="task_active"></i> <p class="text-sm">Tags</p></div>
-                    <div><i class='bx  bx-plus'  ></i> </div>
+                    <div><i class='bx  bx-plus cursor-pointe'  @click="showTagInput = true"  ></i> </div>
                 </div>
-                    <listcomp v-if="showListInput" @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
+                    <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>
                 <div>
-                    <div v-for="l in lists" :key="l.id" class="flex items-center justify-between mx-3 my-2">
-                    <span>{{ l.text }} </span><button @click="deleteList(l.id)"><i class='bx  bx-trash text-red-500'></i></button>
-                    </div>
+                    <router-link to="#" v-for="t in tags" :key="t.id" class="flex items-center justify-between mx-3 my-2 text-sm">
+                    <span>{{ t.text }} </span><button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
+                    </router-link>
                 </div>
             </div>
         </div>

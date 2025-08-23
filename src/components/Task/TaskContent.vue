@@ -10,7 +10,7 @@ defineProps({
 
 const task = ref('')
 const tasks = ref([])
-const completedTasks = ref([  { id: 1, text: 'Task 1' },{ id: 2, text: 'Task 2' }])
+const completedTasks = ref([])
 const showCompleted = ref(true)
 const dueDate = ref('')
 const editID = ref(null)
@@ -167,7 +167,7 @@ function flagClass(priority) {
   }
 }
 function setPriority(task, color) {
-  emit('set-priority', color)
+  task.priority = color
   saveTasks()
   fetchTasks()
 }
@@ -206,8 +206,8 @@ function setPriority(task, color) {
                 <button @click="(e) => togglePopup(t.id,e)">
                   <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
                 </button>
-                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="popupPosition === 'top' ? 
-                'bottom-full mb-2' : 'top-full mt-2' ,'right-0'">
+                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="[popupPosition === 'top' ? 
+                'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
                   <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
                     @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
                 </div>
