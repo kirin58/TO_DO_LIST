@@ -12,8 +12,18 @@
             </div>
         </div>
         <div class="flex justify-center mt-4 font-bold text-xl ">
-            <button class="bg-orange-200 rounded-full px-6 py-2 text-orange-800">Pomo</button>
-            <button class="bg-gray-200 rounded-full px-6 py-2 text-gray-500 cursor-not-allowed ml-2" disabled>Stopwatch</button>
+            <button
+                :class="['rounded-full px-6 py-2', mode === 'pomo' ? 'bg-orange-200 text-orange-800' : 'bg-gray-200 text-gray-500']"
+                @click="switchMode('pomo')"
+            >
+                Pomo
+            </button>
+            <button
+                :class="['rounded-full px-6 py-2 ml-2', mode === 'stopwatch' ? 'bg-orange-200 text-orange-800' : 'bg-gray-200 text-gray-500']"
+                @click="switchMode('stopwatch')"
+            >
+                Stopwatch
+            </button>
         </div>
         <div class="justify-center flex items-center px-6 py-5 mt-4 text-xl text-stone-400 font-semibold">
             <p>
@@ -23,7 +33,8 @@
                 <i class='bx  bx-chevron-right'></i> 
             </button>
         </div>
-        <!-- นาฬิกา Pomodoro หรือ Relax -->
+
+        <!-- นาฬิกา Pomodoro หรือ Relax หรือ Stopwatch -->
         <div class="w-full flex flex-col items-center justify-center text-xl" v-if="!showRelaxModal">
             <div class="flex flex-col items-center">
                 <div class="flex items-center justify-center rounded-full border-4 border-gray-200 w-[400px] h-[400px] mb-8 mt-10 relative">
@@ -31,14 +42,20 @@
                         class="font-light select-none flex items-center justify-center w-full h-full text-7xl leading-none"
                         style="line-height: 1; text-align: center;"
                     >
-                        {{ minutes < 10 ? '0' + minutes : minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
+                        <!-- แสดงเวลาตามโหมด -->
+                        <template v-if="mode === 'pomo'">
+                            {{ minutes < 10 ? '0' + minutes : minutes }}:{{ seconds < 10 ? '0' + seconds : seconds }}
+                        </template>
+                        <template v-else>
+                            {{ swMinutes < 10 ? '0' + swMinutes : swMinutes }}:{{ swSeconds < 10 ? '0' + swSeconds : swSeconds }}
+                        </template>
                     </span>
-                    <!-- ปุ่มตั้งเวลา -->
-                    <button @click="openTimePopup" class="absolute right-6 bottom-6 text-zinc-400 hover:text-orange-400">
+                    <!-- ปุ่มตั้งเวลา (เฉพาะ Pomodoro) -->
+                    <button v-if="mode === 'pomo'" @click="openTimePopup" class="absolute right-6 bottom-6 text-zinc-400 hover:text-orange-400">
                         <i class='bx bx-cog text-3xl'></i>
                     </button>
                     <!-- Popup ตั้งเวลา -->
-                    <div v-if="showTimePopup" class="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2">
+                    <div v-if="showTimePopup && mode === 'pomo'" class="absolute right-0 bottom-0 translate-x-1/2 translate-y-1/2">
                         <div
                             class="bg-white rounded-full shadow-lg flex flex-col items-center justify-center  gray-200"
                             style="width:150px; height:150px; display: flex; justify-content: center; align-items: center;"
@@ -57,7 +74,7 @@
                                 </div>
                                 <div class="flex gap-2 mt-2">
                                     <button @click="closeTimePopup" class="px-2 py-1 rounded bg-gray-100 text-gray-500 text-sm">Cancel</button>
-                                    <button @click="setTime" class="px-3 py-1 rounded bg-orange-300 text-white text-sm font-semibold">OK</button>
+                                    <button @click="setTime" class="px-3 py-1 rounded bg-orange-400 text-white text-sm font-semibold">OK</button>
                                 </div>
                             </div>
                         </div>
@@ -65,51 +82,77 @@
                 </div>
             </div>
             <!-- Pomodoro Mode -->
-            <template v-if="!isRelaxing">
-                <button
-                    v-if="!running"
-                    class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
-                    @click="startTimer"
-                >
-                    {{ isPaused ? 'Continue' : 'Start' }}
-                </button>
-                <button
-                    v-if="!running && isPaused"
-                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
-                    @click="endTimer"
-                >
-                    End
-                </button>
-                <button
-                    v-if="running"
-                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
-                    @click="pauseTimer"
-                >
-                    Pause
-                </button>
+            <template v-if="mode === 'pomo'">
+                <template v-if="!isRelaxing">
+                    <button
+                        v-if="!running"
+                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                        @click="startTimer"
+                    >
+                        {{ isPaused ? 'Continue' : 'Start' }}
+                    </button>
+                    <button
+                        v-if="!running && isPaused"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        @click="endTimer"
+                    >
+                        End
+                    </button>
+                    <button
+                        v-if="running"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        @click="pauseTimer"
+                    >
+                        Pause
+                    </button>
+                </template>
+                <!-- Relax Mode -->
+                <template v-else>
+                    <button
+                        v-if="!running"
+                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                        @click="startTimer"
+                    >
+                        {{ isPaused ? 'Continue' : 'Start' }}
+                    </button>
+                    <button
+                        v-if="!running && isPaused"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        @click="endRelax"
+                    >
+                        End
+                    </button>
+                    <button
+                        v-if="running"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        @click="pauseTimer"
+                    >
+                        Pause
+                    </button>
+                </template>
             </template>
-            <!-- Relax Mode -->
+            <!-- Stopwatch Mode -->
             <template v-else>
                 <button
-                    v-if="!running"
+                    v-if="!swRunning"
                     class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
-                    @click="startTimer"
+                    @click="startStopwatch"
                 >
-                    {{ isPaused ? 'Continue' : 'Start' }}
+                    {{ swPaused ? 'Continue' : 'Start' }}
                 </button>
                 <button
-                    v-if="!running && isPaused"
+                    v-if="swRunning"
                     class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
-                    @click="endRelax"
-                >
-                    End
-                </button>
-                <button
-                    v-if="running"
-                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
-                    @click="pauseTimer"
+                    @click="pauseStopwatch"
                 >
                     Pause
+                </button>
+                <button
+                    v-if="!swRunning && (swMinutes > 0 || swSeconds > 0)"
+                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition mt-2"
+                    @click="resetStopwatch"
+                >
+                    Reset
                 </button>
             </template>
         </div>
@@ -132,19 +175,36 @@
 export default {
     data() {
         return {
-            minutes: 25, // เริ่มต้น 25 นาที
+            // Pomodoro
+            minutes: 25,
             seconds: 0,
             timer: null,
             running: false,
             isPaused: false,
             showRelaxModal: false,
-            isRelaxing: false, // โหมดพัก
-            // เพิ่มสำหรับ popup ตั้งเวลา
+            isRelaxing: false,
             showTimePopup: false,
             inputMinutes: 25,
+            // Stopwatch
+            mode: 'pomo', // 'pomo' หรือ 'stopwatch'
+            swMinutes: 0,
+            swSeconds: 0,
+            swTimer: null,
+            swRunning: false,
+            swPaused: false,
         };
     },
     methods: {
+        // Mode switching
+        switchMode(mode) {
+            this.mode = mode;
+            if (mode === 'pomo') {
+                this.stopStopwatch();
+            } else {
+                this.pauseTimer();
+            }
+        },
+        // Pomodoro
         startTimer() {
             if (this.running) return;
             this.running = true;
@@ -155,12 +215,10 @@ export default {
                         clearInterval(this.timer);
                         this.running = false;
                         if (this.isRelaxing) {
-                            // จบช่วงพัก
                             this.isRelaxing = false;
                             this.minutes = 25;
                             this.seconds = 0;
                         } else {
-                            // จบ Pomodoro
                             this.showRelaxModal = true;
                         }
                     } else {
@@ -221,6 +279,36 @@ export default {
                 this.seconds = 0;
             }
             this.showTimePopup = false;
+        },
+        // Stopwatch
+        startStopwatch() {
+            if (this.swRunning) return;
+            this.swRunning = true;
+            this.swPaused = false;
+            this.swTimer = setInterval(() => {
+                this.swSeconds++;
+                if (this.swSeconds >= 60) {
+                    this.swSeconds = 0;
+                    this.swMinutes++;
+                }
+            }, 1000);
+        },
+        pauseStopwatch() {
+            clearInterval(this.swTimer);
+            this.swRunning = false;
+            this.swPaused = true;
+        },
+        resetStopwatch() {
+            clearInterval(this.swTimer);
+            this.swMinutes = 0;
+            this.swSeconds = 0;
+            this.swRunning = false;
+            this.swPaused = false;
+        },
+        stopStopwatch() {
+            clearInterval(this.swTimer);
+            this.swRunning = false;
+            this.swPaused = false;
         },
     },
     mounted() {
