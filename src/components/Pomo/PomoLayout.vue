@@ -204,6 +204,9 @@ export default {
                 this.pauseTimer();
             }
         },
+        switchMode(mode) {
+            this.mode = mode;
+        },
         // Pomodoro
         startTimer() {
             if (this.running) return;
