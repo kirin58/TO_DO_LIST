@@ -1,12 +1,9 @@
 <script setup>
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import TaskPopup from './TaskPopup.vue'
 import draggable from 'vuedraggable'
 import Taskshuffle from './Taskshuffle.vue'
-
-defineProps({
-  emptytask: String
-})
+import { useRoute } from 'vue-router'
 
 const task = ref('')
 const tasks = ref([])
@@ -23,6 +20,51 @@ const sortByDate = ref(false)
 const sortByPriority = ref(false)
 const sortByNone = ref(false)
 const popupPosition = ref('bottom')
+const props = defineProps({
+  emptytask: { type: String, required: true },
+  title: String,
+  mode: { type: String, default: 'today' }
+})
+const route = useRoute()
+const routeMode = computed(() => {
+  if (props.mode === 'inbox') return 'inbox'
+  if (props.mode === 'next7') return 'next7'
+  return 'today'
+})
+
+const today = new Date()
+today.setHours(0,0,0,0)
+
+const tasksToShow = computed(() => {
+  if (props.mode === 'inbox') {
+    return [...tasks.value, ...completedTasks.value]
+  }
+
+  if (props.mode === 'today') {
+    return tasks.value.filter(t => {
+      if (!t.dueDate) return false
+      const taskDate = new Date(t.dueDate)
+      return taskDate.toDateString() === today.toDateString()
+    })
+  }
+
+  if (props.mode === 'next7') {
+    const start = new Date(today)
+    start.setDate(today.getDate() + 1) 
+
+    const end = new Date(today)
+    end.setDate(today.getDate() + 8)   
+
+    return tasks.value.filter(t => {
+      if (!t.dueDate) return false
+      const taskDate = new Date(t.dueDate)
+      return taskDate >= start && taskDate <= end
+    })
+  }
+
+
+  return []
+})
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify({
@@ -175,9 +217,9 @@ function setPriority(task, color) {
 
 <template>
   <div class="w-3/5 h-screen">
-    <div class="flex flex-col p-6 ">
+    <div class="h-1/5 flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
-        <p class="text-2xl font-black text-stone-600">Inbox</p>
+        <p class="text-2xl font-black text-stone-600">     {{ props.mode === 'today' ? 'Today' : props.mode === 'next7' ? 'Next 7 Days' : 'Inbox' }}</p>
         <div class="text-stone-400 text-2xl">
           <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
@@ -188,9 +230,9 @@ function setPriority(task, color) {
         <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
       </div>
     </div>
-    <div class="w-full overflow-y-auto pl-5 pr-14">
-      <div v-if="tasks.length" >
-        <draggable v-model="tasks" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
+    <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">
+      <div v-if="tasksToShow.length" >
+        <draggable :list="tasksToShow" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
             <div class="w-full f-center">
               <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
@@ -206,7 +248,7 @@ function setPriority(task, color) {
                 <button @click="(e) => togglePopup(t.id,e)">
                   <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
                 </button>
-                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="[popupPosition === 'top' ? 
+                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50 right-12" :class="[popupPosition === 'top' ? 
                 'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
                   <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
                     @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
@@ -216,11 +258,11 @@ function setPriority(task, color) {
           </template>
         </draggable>
       </div>
-      <div v-else class="f-center h-full justify-center ">
+      <div v-else class="flex items-center justify-center w-full h-full">
             <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
       </div>
     </div>
-    <div class="pl-5">
+    <div class="h-1/5 pl-5">
       <div class="f-center" @click="showCompleted = !showCompleted">
         <i :class="showCompleted ? 'bx bx-chevron-down text-2xl':'bx bx-chevron-right text-2xl'"></i>
         <h1>{{ showCompleted ? 'Show Completed' : 'Hide Completed' }}</h1>

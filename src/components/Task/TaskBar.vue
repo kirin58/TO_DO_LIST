@@ -25,8 +25,8 @@ function deleteTags(id){
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
         <div class="bar">
             <div>
-                <router-link to="#" class="taskmenu " exact-active-class="task_active"><i class='bx  bxs-calendar-heart'  ></i><p class="text-base">Today</p></router-link>
-                <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bxs-calendar-minus'  ></i><p class="text-base">Next 7 Days</p></router-link>
+                <router-link to="/Today" class="taskmenu " exact-active-class="task_active"><i class='bx  bxs-calendar-heart'  ></i><p class="text-base">Today</p></router-link>
+                <router-link to="/Next7" class="taskmenu" exact-active-class="task_active"><i class='bx  bxs-calendar-minus'  ></i><p class="text-base">Next 7 Days</p></router-link>
                 <router-link to="/Inbox" class="taskmenu" exact-active-class="task_active"><i class='bx  bxs-inbox'  ></i> <p class="text-base">Inbox</p></router-link>
             </div>
             <div>
