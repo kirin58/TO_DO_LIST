@@ -22,6 +22,7 @@ const sortByNone = ref(false)
 const popupPosition = ref('bottom')
 const props = defineProps({
   emptytask: { type: String, required: true },
+  empty: String, emptydis : String,
   title: String,
   mode: { type: String, default: 'today' }
 })
@@ -37,7 +38,7 @@ today.setHours(0,0,0,0)
 
 const tasksToShow = computed(() => {
   if (props.mode === 'inbox') {
-    return [...tasks.value, ...completedTasks.value]
+    return tasks.value 
   }
 
   if (props.mode === 'today') {
@@ -50,10 +51,10 @@ const tasksToShow = computed(() => {
 
   if (props.mode === 'next7') {
     const start = new Date(today)
-    start.setDate(today.getDate() + 1) 
+    start.setDate(today.getDate() + 1)
 
     const end = new Date(today)
-    end.setDate(today.getDate() + 8)   
+    end.setDate(today.getDate() + 8)
 
     return tasks.value.filter(t => {
       if (!t.dueDate) return false
@@ -62,9 +63,9 @@ const tasksToShow = computed(() => {
     })
   }
 
-
   return []
 })
+
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify({
@@ -160,18 +161,18 @@ function editDate(task, newDate) {
 }
 
 function completeTask(task) {
-  task.completed = true
+  const updatedTask = { ...task, completed: true }
   tasks.value = tasks.value.filter(t => t.id !== task.id)
-  completedTasks.value.push(task)
+  completedTasks.value.push(updatedTask)
   saveTasks()
 }
 function uncompleteTask(task) {
-  task.completed = false
+  const updatedTask = { ...task, completed: false }
   completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
-  tasks.value.push(task)
+  tasks.value.push(updatedTask)
   saveTasks()
-  fetchTasks()
 }
+
 
 function togglePopup(id, event) {
   taskMenu.value = taskMenu.value === id ? null : id
@@ -258,16 +259,18 @@ function setPriority(task, color) {
           </template>
         </draggable>
       </div>
-      <div v-else class="flex items-center justify-center w-full h-full">
+      <div v-else class="flex flex-col text-center items-center justify-center w-full h-full">
             <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
+            <h1 class="font-semibold text-stone-500">{{empty}}</h1>
+            <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
     <div class="h-1/5 pl-5">
       <div class="f-center" @click="showCompleted = !showCompleted">
-        <i :class="showCompleted ? 'bx bx-chevron-down text-2xl':'bx bx-chevron-right text-2xl'"></i>
-        <h1>{{ showCompleted ? 'Show Completed' : 'Hide Completed' }}</h1>
+        <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
+        <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ completedTasks.length }})</h1>
       </div>
-      <div v-if="showCompleted && completedTasks.length" class="space-y-2">
+      <div v-show="showCompleted" class="space-y-2">
         <draggable v-model="completedTasks" item-key="id" class="space-y-2" handle=".drag-handle"   
           :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">

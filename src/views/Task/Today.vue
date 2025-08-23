@@ -2,7 +2,7 @@
 import NavBar from '@/components/NavBar.vue';
 import TaskBar from '@/components/Task/TaskBar.vue';
 import TaskContent from '@/components/Task/TaskContent.vue';
-import emptytask from '@/assets/NoInbox.png';
+import emptytask from '@/assets/NoToday.png';
 
 const title = "Today"
 const mode = 'today'
@@ -11,6 +11,6 @@ const mode = 'today'
     <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContent :emptytask="emptytask" :title="title" :mode="'today'" />
+        <TaskContent :emptytask="emptytask" :title="title" :mode="'today'" :empty="'No tasks today'" :emptydis="'It is time to relax'"/>
     </div>
 </template>

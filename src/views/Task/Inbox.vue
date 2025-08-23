@@ -10,6 +10,6 @@ const title = "Inbox"
     <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContent :emptytask="emptytask" :title="title" mode="inbox" />
+        <TaskContent :emptytask="emptytask" :title="title" mode="inbox" :empty="'No tasks'" :emptydis="'Captures all your tasks and ideas'"/>
     </div>
 </template>
