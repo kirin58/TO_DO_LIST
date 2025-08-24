@@ -6,7 +6,6 @@ import Taskshuffle from './Taskshuffle.vue'
 import { useRoute } from 'vue-router'
 
 const task = ref('')
-const tasks = ref([])
 const completedTasks = ref([])
 const showCompleted = ref(true)
 const dueDate = ref('')
@@ -20,6 +19,11 @@ const sortByDate = ref(false)
 const sortByPriority = ref(false)
 const sortByNone = ref(false)
 const popupPosition = ref('bottom')
+const tasks = ref([
+  { id: 1, text: "Do homework", pinned: false },
+  { id: 2, text: "Go shopping", pinned: false }
+])
+
 const props = defineProps({
   emptytask: { type: String, required: true },
   empty: String, emptydis : String,
@@ -214,11 +218,20 @@ function setPriority(task, color) {
   saveTasks()
   fetchTasks()
 }
+function togglePin(task) {
+  task.pinned = !task.pinned
+  tasks.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return 0
+  })
+  saveTasks()
+}
 </script>
 
 <template>
   <div class="w-3/5 h-screen">
-    <div class="h-1/5 flex flex-col p-6 ">
+    <div class="h-1/6 flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p class="text-2xl font-black text-stone-600">     {{ props.mode === 'today' ? 'Today' : props.mode === 'next7' ? 'Next 7 Days' : 'Inbox' }}</p>
         <div class="text-stone-400 text-2xl">
@@ -231,7 +244,7 @@ function setPriority(task, color) {
         <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
       </div>
     </div>
-    <div class="w-full h-3/5 overflow-y-auto pl-5 pr-14">
+    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
       <div v-if="tasksToShow.length" >
         <draggable :list="tasksToShow" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
@@ -239,8 +252,11 @@ function setPriority(task, color) {
               <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
               <button @click="completeTask(t)"><i class='bx bx-checkbox checkbox'></i></button>
               <div class="task">
-                <span v-if="editID !== t.id" @click="edit(t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
-                <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
+                <div class="flex items-center gap-4 ">
+                  <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
+                  <span v-if="editID !== t.id" @click="edit(t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
+                  <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
+                </div>
                 <div v-if ="t.dueDate && !isNaN(new Date(t.dueDate).getTime()) " class="w-full flex justify-end pr-4" >
                   {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
                 <i v-if="t.priority" :class="flagClass(t.priority)"></i>
@@ -251,7 +267,7 @@ function setPriority(task, color) {
                 </button>
                 <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50 right-12" :class="[popupPosition === 'top' ? 
                 'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
-                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
+                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)"  @pin-task="togglePin(t)" 
                     @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
                 </div>
               </div>
@@ -265,7 +281,7 @@ function setPriority(task, color) {
             <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
-    <div class="h-1/5 pl-5">
+    <div class="h-2/6 pl-5 overflow-y-auto">
       <div class="f-center" @click="showCompleted = !showCompleted">
         <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
         <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ completedTasks.length }})</h1>

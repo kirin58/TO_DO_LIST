@@ -2,16 +2,17 @@
 import { ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import TaskBar from './TaskBar.vue'
 
 const props = defineProps({
+    lists:Array,
     modelValue: String ,
     isNew : {type:Boolean,default:false}
 })
 const popupPosition = ref('bottom')
-const emit = defineEmits(['update:modelValue','delete','set-priority'])
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task'])
 
 const selectDate = ref(props.modelValue || undefined)
-//เลือกวันที่
 watch(selectDate, (newValue) => {
     emit('update:modelValue', newValue)
 })
@@ -23,10 +24,11 @@ const setDateOffset = (days) => {
     selectDate.value = iso
     emit('update:modelValue', iso)
 }
-//เลือกธง
 function setPriority(color) {
   emit('set-priority', color)
 }
+
+const showlistpopup = ref(false)
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -82,19 +84,22 @@ function setPriority(color) {
         </div>
         <div class="taskpopup_line"></div>
         <div class="taskpopup_func">
-            <button><i class='bx  bx-pin'  ></i></button>
+            <button @click="emit('pin-task')"><i class='bx  bx-pin'  ></i></button>
             <p>Pin</p>
         </div>
         <div class="taskpopup_func justify-between">
             <div class="flex gap-2">
                 <button><i class='bx  bx-chevron-right-square'  ></i> </button>
-                <p>Move To</p>
+                <p>Lists</p>
             </div>
-            <button><i class='bx  bxs-chevron-right '></i></button>
+            <button><i class='bx  bxs-chevron-right ' ></i></button>
         </div>
-        <div class="taskpopup_func">
-            <button>#</button>
-            <p>Tags</p>
+        <div class="taskpopup_func justify-between">
+            <div class="flex gap-2">
+                <button>#</button>
+                <p>Tags</p>
+            </div>
+            <i class='bx  bxs-chevron-right '></i>
         </div>
         <template v-if="!props.isNew">
             <div class="taskpopup_line"></div>

@@ -1,7 +1,8 @@
 <script setup>
-import {ref} from 'vue'
+import {ref,onMounted,watch} from 'vue'
 import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
+import TaskPopup from './TaskPopup.vue';
 
 const lists = ref([])
 const showListInput = ref(false)
@@ -20,6 +21,24 @@ function handleAddTag(newTag){
 function deleteTags(id){
     tags.value = tags.value.filter(t => t.id !== id) 
 }
+
+onMounted(() => {
+  const savedLists = localStorage.getItem('myLists')
+  if (savedLists) lists.value = JSON.parse(savedLists)
+
+  const savedTags = localStorage.getItem('myTags')
+  if (savedTags) tags.value = JSON.parse(savedTags)
+})
+
+watch(lists, (newVal) => {
+  localStorage.setItem('myLists', JSON.stringify(newVal))
+}, { deep: true })
+
+watch(tags, (newVal) => {
+  localStorage.setItem('myTags', JSON.stringify(newVal))
+}, { deep: true })
+
+
 </script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
@@ -44,13 +63,13 @@ function deleteTags(id){
                 
                 <div class="list">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right 'exact-active-class="task_active"></i> <p class="text-sm">Tags</p></div>
-                    <div><i class='bx  bx-plus cursor-pointe'  @click="showTagInput = true"  ></i> </div>
+                    <div><i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> </div>
                 </div>
                     <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>
                 <div>
-                    <router-link to="#" v-for="t in tags" :key="t.id" class="flex items-center justify-between mx-3 my-2 text-sm">
+                    <div  v-for="t in tags" :key="t.id" class="flex items-center justify-between mx-3 my-2 text-sm">
                     <span>{{ t.text }} </span><button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
-                    </router-link>
+                    </div >
                 </div>
             </div>
         </div>
@@ -61,6 +80,7 @@ function deleteTags(id){
             <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-trash'  exact-active-class="task_active"></i> <p class="text-base">Trash</p></router-link>
         </div>
     </div>
+
 </template>
 <style>
 .bar {
