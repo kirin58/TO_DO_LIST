@@ -1,9 +1,7 @@
 <script>
-import { ref ,watch} from 'vue';
 import NavBar from '@/components/NavBar.vue';
 import PomoLayout from '@/components/Pomo/PomoLayout.vue';
 import Pomoright from '@/components/Pomo/Pomoright.vue';
-import Component from 'vue-flatpickr-component';
 
 export default {
   components: { PomoLayout, Pomoright ,NavBar  },
