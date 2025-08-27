@@ -5,7 +5,6 @@ import TaskContent from '@/components/Task/TaskContent.vue';
 import emptytask from '@/assets/NoToday.png';
 
 const title = "Today"
-const mode = 'today'
 </script>
 <template>
     <div class="h-screen w-screen flex flex-row">

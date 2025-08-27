@@ -6,7 +6,9 @@ import Taskshuffle from './Taskshuffle.vue'
 import { useRoute } from 'vue-router'
 
 const task = ref('')
+const tasks = ref([])
 const completedTasks = ref([])
+const trashTasks = ref([])
 const showCompleted = ref(true)
 const dueDate = ref('')
 const editID = ref(null)
@@ -19,22 +21,32 @@ const sortByDate = ref(false)
 const sortByPriority = ref(false)
 const sortByNone = ref(false)
 const popupPosition = ref('bottom')
-const tasks = ref([
-  { id: 1, text: "Do homework", pinned: false },
-  { id: 2, text: "Go shopping", pinned: false }
-])
 
 const props = defineProps({
   emptytask: { type: String, required: true },
-  empty: String, emptydis : String,
+  empty: String, 
+  emptydis : String,
   title: String,
   mode: { type: String, default: 'today' }
 })
+
 const route = useRoute()
 const routeMode = computed(() => {
   if (props.mode === 'inbox') return 'inbox'
   if (props.mode === 'next7') return 'next7'
   return 'today'
+})
+
+const pageTitle = computed(() => {
+  if (props.title) return props.title
+  switch (props.mode) {
+    case 'today': return 'Today'
+    case 'next7': return 'Next 7 Days'
+    case 'inbox': return 'Inbox'
+    case 'completed': return 'Completed'
+    case 'trash': return 'Trash'
+    default: return ''
+  }
 })
 
 const today = new Date()
@@ -66,15 +78,22 @@ const tasksToShow = computed(() => {
       return taskDate >= start && taskDate <= end
     })
   }
+  if (props.mode === 'trash'){
+    return trashTasks.value
+  }
 
   return []
 })
 
+const showMainBlock = computed(() => {
+  return props.mode !== 'completed' && props.mode !== 'trash'
+})
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify({
     incomplete: tasks.value,
-    complete: completedTasks.value
+    complete: completedTasks.value,
+    trash : trashTasks.value
   }))
 }
 
@@ -98,6 +117,7 @@ function fetchTasks() {
   const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
   tasks.value = stored.incomplete || []
   completedTasks.value = stored.complete || []
+  trashTasks.value = stored.trash || []
 
   if (sortByDate.value) {
     tasks.value.sort(sortByDateFn)
@@ -130,6 +150,10 @@ function addTask() {
 }
 
 function deleteTask(taskId) {
+  const t = tasks.value.find(x => x.id === taskId) || completedTasks.value.find(x => x.id === taskId)
+  if (t) {
+    trashTasks.value.push({...t,deletedAt: new Date()})
+  }
   tasks.value = tasks.value.filter(t => t.id !== taskId)
   completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
   saveTasks()
@@ -227,24 +251,49 @@ function togglePin(task) {
   })
   saveTasks()
 }
+
+const selectTrash = ref(false)
+
+function toggleselectTrash(){
+  selectTrash.value = !selectTrash.value
+  trashTasks.value.forEach(t => {t.isDeleted = selectTrash.value})
+}
+
+function restoreTasks() {
+  const toRestore = trashTasks.value.filter(t => t.isDeleted)
+
+  if (toRestore.length > 0) {
+    toRestore.forEach(t => {
+      if (t.completed) {
+        completedTasks.value.push({ ...t, isDeleted: false })
+      } else {
+        tasks.value.push({ ...t, isDeleted: false })
+      }
+    })
+
+    trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
+
+    saveTasks()
+  }
+}
 </script>
 
 <template>
   <div class="w-3/5 h-screen">
-    <div class="h-1/6 flex flex-col p-6 ">
+    <div class="flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
-        <p class="text-2xl font-black text-stone-600">     {{ props.mode === 'today' ? 'Today' : props.mode === 'next7' ? 'Next 7 Days' : 'Inbox' }}</p>
-        <div class="text-stone-400 text-2xl">
+        <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
+        <div v-if="showMainBlock" class="text-stone-400 text-2xl">
           <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
-      <div class="f-center justify-between bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
+      <div v-if="showMainBlock " class="f-center justify-between bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
         <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="bg-transparent text-slate-500 outline-none"/>
         <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
       </div>
     </div>
-    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
+    <div v-if="showMainBlock " class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
       <div v-if="tasksToShow.length" >
         <draggable :list="tasksToShow" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
           <template #item="{ element: t }">
@@ -281,7 +330,12 @@ function togglePin(task) {
             <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
-    <div class="h-2/6 pl-5 overflow-y-auto">
+    <div v-if="props.mode == 'completed' && completedTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-5/6">
+      <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
+        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
+        <p class="text-stone-400">{{ emptydis }}</p>
+    </div>
+    <div v-if="props.mode !== 'trash'" class="h-2/6 pl-5 overflow-y-auto">
       <div class="f-center" @click="showCompleted = !showCompleted">
         <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
         <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ completedTasks.length }})</h1>
@@ -301,6 +355,27 @@ function togglePin(task) {
             </div>
           </template>
         </draggable>
+      </div>
+    </div>
+    <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
+      <div class="f-center justify-between" >
+        <div class="f-center gap-2">
+          <button @click="toggleselectTrash"><i :class="selectTrash ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
+          <p class="text-lg text-stone-500">All</p>
+        </div>
+        <div class="f-center gap-2">
+          <button @click="restoreTasks"><i class='bx bx-undo text-3xl text-zinc-400'></i> </button>
+          <button><i class='bx  bx-trash text-2xl text-zinc-400'  ></i> </button>
+        </div>
+      </div>
+      <div v-for="t in trashTasks" :key="t.id" class="f-center">
+        <button @click="t.isDeleted = !t.isDeleted"><i :class="t.isDeleted ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
+        <span class="text-lg text-stone-500">{{ t.text }}</span>
+      </div>
+      <div v-if="trashTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-full">
+        <img :src="emptytask" alt="Empty Trash" class="w-64 h-auto object-contain opacity-50"/>
+        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
+        <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
   </div>

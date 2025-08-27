@@ -2,7 +2,6 @@
 import {ref,onMounted,watch} from 'vue'
 import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
-import TaskPopup from './TaskPopup.vue';
 
 const lists = ref([])
 const showListInput = ref(false)
@@ -76,8 +75,8 @@ watch(tags, (newVal) => {
         
         <div class="bar justify-end mb-10">
             <div class="line"><div></div></div>
-            <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-check-square'  exact-active-class="task_active"></i> <p class="text-base">Completed</p></router-link>
-            <router-link to="#" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-trash'  exact-active-class="task_active"></i> <p class="text-base">Trash</p></router-link>
+            <router-link to="/Completed" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-check-square'  exact-active-class="task_active"></i> <p class="text-base">Completed</p></router-link>
+            <router-link to="/Trash" class="taskmenu" exact-active-class="task_active"><i class='bx  bx-trash'  exact-active-class="task_active"></i> <p class="text-base">Trash</p></router-link>
         </div>
     </div>
 

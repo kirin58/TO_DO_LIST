@@ -5,7 +5,6 @@ import TaskContent from '@/components/Task/TaskContent.vue';
 import emptytask from '@/assets/NoNext7.png';
 
 const title = "Next7"
-const mode = 'next7'
 </script>
 <template>
     <div class="h-screen w-screen flex flex-row">
