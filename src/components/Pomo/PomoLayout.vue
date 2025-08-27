@@ -92,7 +92,7 @@
                         {{ isPaused ? 'Continue' : 'Start' }}
                     </button>
                     <button
-                        v-if="!running && isPaused"
+                        v-if="!running && (isPaused || (minutes !== inputMinutes || seconds !== 0))"
                         class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
                         @click="endTimer"
                     >
@@ -185,25 +185,19 @@ export default {
             isRelaxing: false,
             showTimePopup: false,
             inputMinutes: 25,
+            sessionStart: null,
             // Stopwatch
-            mode: 'pomo', // 'pomo' หรือ 'stopwatch'
+            mode: 'pomo',
             swMinutes: 0,
             swSeconds: 0,
             swTimer: null,
             swRunning: false,
             swPaused: false,
+
+            sessions: JSON.parse(localStorage.getItem("sessions") || "[]")
         };
     },
     methods: {
-        // Mode switching
-        switchMode(mode) {
-            this.mode = mode;
-            if (mode === 'pomo') {
-                this.stopStopwatch();
-            } else {
-                this.pauseTimer();
-            }
-        },
         switchMode(mode) {
             this.mode = mode;
         },
@@ -212,14 +206,19 @@ export default {
             if (this.running) return;
             this.running = true;
             this.isPaused = false;
+            if (!this.sessionStart){
+                this.sessionStart = new Date();
+            }
             this.timer = setInterval(() => {
                 if (this.seconds === 0) {
                     if (this.minutes === 0) {
                         clearInterval(this.timer);
                         this.running = false;
+                        // Emit session เมื่อจับเวลาจบเอง
+                        this.emitSession();
                         if (this.isRelaxing) {
                             this.isRelaxing = false;
-                            this.minutes = 25;
+                            this.minutes = this.inputMinutes;
                             this.seconds = 0;
                         } else {
                             this.showRelaxModal = true;
@@ -240,15 +239,39 @@ export default {
         },
         endTimer() {
             clearInterval(this.timer);
-            this.minutes = 25;
+            this.emitSession();
+            this.minutes = this.inputMinutes;
             this.seconds = 0;
             this.running = false;
             this.isPaused = false;
+            this.sessionStart = null;
+        },
+        emitSession() {
+            if (this.sessionStart) {
+                const end = new Date();
+                // เวลาที่ผ่านไปจริง
+                const diffMs = end - this.sessionStart;
+                const usedMinutes = Math.floor(diffMs / 60000);
+                const usedSeconds = Math.floor((diffMs % 60000) / 1000);
+
+                const session = {
+                    minutes: usedMinutes,
+                    seconds: usedSeconds,
+                    start: this.sessionStart,
+                    end: end,
+                };
+
+                this.sessions.push(session);
+                localStorage.setItem("sessions",JSON.stringify(this.sessions));
+
+                this.$emit('pomo-ended', session);
+                this.sessionStart = null;
+            }
         },
         endRelax() {
             clearInterval(this.timer);
             this.isRelaxing = false;
-            this.minutes = 25;
+            this.minutes = this.inputMinutes;
             this.seconds = 0;
             this.running = false;
             this.isPaused = false;
