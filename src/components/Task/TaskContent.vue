@@ -276,6 +276,12 @@ function restoreTasks() {
     saveTasks()
   }
 }
+
+function deleteForever() {
+  trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
+  saveTasks()
+}
+
 </script>
 
 <template>
@@ -365,7 +371,7 @@ function restoreTasks() {
         </div>
         <div class="f-center gap-2">
           <button @click="restoreTasks"><i class='bx bx-undo text-3xl text-zinc-400'></i> </button>
-          <button><i class='bx  bx-trash text-2xl text-zinc-400'  ></i> </button>
+          <button @click="deleteForever"><i class='bx  bx-trash text-2xl text-zinc-400'  ></i> </button>
         </div>
       </div>
       <div v-for="t in trashTasks" :key="t.id" class="f-center">
