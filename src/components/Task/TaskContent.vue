@@ -336,11 +336,6 @@ function deleteForever() {
             <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
-    <div v-if="props.mode == 'completed' && completedTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-5/6">
-      <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
-        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
-        <p class="text-stone-400">{{ emptydis }}</p>
-    </div>
     <div v-if="props.mode !== 'trash'" class="h-2/6 pl-5 overflow-y-auto">
       <div class="f-center" @click="showCompleted = !showCompleted">
         <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
@@ -361,6 +356,11 @@ function deleteForever() {
             </div>
           </template>
         </draggable>
+      </div>
+      <div v-if="props.mode == 'completed' && completedTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-5/6">
+        <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
+        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
+        <p class="text-stone-400">{{ emptydis }}</p>
       </div>
     </div>
     <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
