@@ -5,11 +5,11 @@ const emit = defineEmits(['closeInput','addList'])
 const list = ref('')
 
 function confirmAddList(){
-    if(!list.value.trim())return
-    const newList = {id:Date.now(),text:list.value}
-    emit('addList',newList)
-    list.value = ''
-    emit('closeInput')
+    if(list.value.trim()){
+        emit('addList',list.value.trim())
+        list.value = ''
+        emit('closeInput')
+    }
 }
 function cancel(){
     list.value = ''

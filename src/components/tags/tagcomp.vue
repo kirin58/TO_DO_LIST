@@ -5,11 +5,11 @@ const emit = defineEmits(['closeInput','addTag'])
 const tag = ref('')
 
 function addTag(){
-    if(!tag.value.trim())return
-    const newTag = {id:Date.now(),text:tag.value}
-    emit('addTag',newTag)
-    tag.value=''
-    emit('closeInput')
+    if(tag.value.trim()){
+        emit('addTag',tag.value.trim())
+        tag.value = ''
+        emit('closeInput')
+    }
 }
 function cancel(){
     tag.value = ''
