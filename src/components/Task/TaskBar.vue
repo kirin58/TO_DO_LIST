@@ -49,6 +49,7 @@ watch(tags, (newVal) => {
   localStorage.setItem('myTags', JSON.stringify(newVal))
 }, { deep: true })
 
+const showList = ref(false)
 </script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
@@ -61,14 +62,14 @@ watch(tags, (newVal) => {
             <div>
                 <div class="line"><div></div></div>
                 <div class="list">
-                    <div class="flex items-center"><i class='bx  bxs-chevron-right '></i><p class="text-sm">List</p></div>
+                    <div class="flex items-center"><i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i><p class="text-md">List</p></div>
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i></div>
                 </div>
                 <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
-                <listspopup :lists="lists" :show-Trash="true" @delete-list="deleteList"></listspopup>
+                <listspopup v-if="showList" :lists="lists" :Listpopup="false" @delete-list="deleteList"></listspopup>
                 
                 <div class="list">
-                    <div class="flex items-center"><i class='bx  bxs-chevron-right '></i> <p class="text-sm">Tags</p></div>
+                    <div class="flex items-center"><i class='bx  bxs-chevron-right '></i> <p class="text-md">Tags</p></div>
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> </div>
                 </div>
                 <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>

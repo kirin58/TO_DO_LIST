@@ -1,9 +1,8 @@
 <script setup>
-import { ref ,watch} from 'vue'
+import { onMounted, ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Listspopup from '../Lists/Listspopup.vue'
-
 
 const props = defineProps({
   lists: Array,
@@ -25,9 +24,14 @@ const setDateOffset = (days) => {
     selectDate.value = iso
     emit('update:modelValue', iso)
 }
+
 function setPriority(color) {
   emit('set-priority', color)
 }
+
+
+
+const showList = ref(false)
 
 </script>
 <template>
@@ -91,17 +95,20 @@ function setPriority(color) {
             <div class="taskpopup_func justify-between">
                 <div class="flex gap-2">
                     <button><i class='bx  bx-chevron-right-square'  ></i> </button>
-                <p>Lists</p>
+                    <p>Lists</p>
                 </div>
+                <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <listspopup :lists="lists" :show-Trash="false" class="ml-12"></listspopup>
+            <listspopup v-if="showList" :lists="lists" :Listbar="false" @delete-list="handleDeleteList"></listspopup>
         </div>
-        <div class="taskpopup_func justify-between">
-            <div class="flex gap-2">
-                <button>#</button>
-                <p>Tags</p>
+        <div>
+            <div class="taskpopup_func justify-between">
+                <div class="flex gap-2">
+                    <button>#</button>
+                    <p>Tags</p>
+                </div>
+                <i class='bx  bxs-chevron-right '></i>
             </div>
-            <i class='bx  bxs-chevron-right '></i>
         </div>
         <template v-if="!props.isNew">
             <div class="taskpopup_line"></div>
@@ -120,7 +127,7 @@ function setPriority(color) {
     @apply h-px my-2 bg-slate-300;
 }
 .taskpopup_func{
-    @apply flex my-2 gap-2;
+    @apply flex items-center my-2 gap-2;
 }
 .fade-enter-active, .fade-leave-active {
   @apply transition-opacity duration-200;
