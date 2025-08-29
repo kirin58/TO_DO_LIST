@@ -2,14 +2,15 @@
 import { ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import TaskBar from './TaskBar.vue'
+import Listspopup from '../Lists/Listspopup.vue'
+
 
 const props = defineProps({
-    lists:Array,
-    modelValue: String ,
-    isNew : {type:Boolean,default:false}
+  lists: Array,
+  modelValue: String,
+  isNew: { type: Boolean, default: false }
 })
-const popupPosition = ref('bottom')
+const popupPosition = ref('top')
 const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task'])
 
 const selectDate = ref(props.modelValue || undefined)
@@ -28,7 +29,6 @@ function setPriority(color) {
   emit('set-priority', color)
 }
 
-const showlistpopup = ref(false)
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -87,12 +87,14 @@ const showlistpopup = ref(false)
             <button @click="emit('pin-task')"><i class='bx  bx-pin'  ></i></button>
             <p>Pin</p>
         </div>
-        <div class="taskpopup_func justify-between">
-            <div class="flex gap-2">
-                <button><i class='bx  bx-chevron-right-square'  ></i> </button>
+        <div>
+            <div class="taskpopup_func justify-between">
+                <div class="flex gap-2">
+                    <button><i class='bx  bx-chevron-right-square'  ></i> </button>
                 <p>Lists</p>
+                </div>
             </div>
-            <button><i class='bx  bxs-chevron-right ' ></i></button>
+            <listspopup :lists="lists" :show-Trash="false" class="ml-12"></listspopup>
         </div>
         <div class="taskpopup_func justify-between">
             <div class="flex gap-2">
@@ -119,5 +121,11 @@ const showlistpopup = ref(false)
 }
 .taskpopup_func{
     @apply flex my-2 gap-2;
+}
+.fade-enter-active, .fade-leave-active {
+  @apply transition-opacity duration-200;
+}
+.fade-enter-from, .fade-leave-to {
+  @apply opacity-0;
 }
 </style>

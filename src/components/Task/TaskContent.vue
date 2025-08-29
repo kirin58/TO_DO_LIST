@@ -282,6 +282,11 @@ function deleteForever() {
   saveTasks()
 }
 
+const lists = ref([])
+onMounted(() => {
+  const savedLists = localStorage.getItem('myLists')
+  if (savedLists) lists.value = JSON.parse(savedLists)
+})
 </script>
 
 <template>
@@ -323,7 +328,7 @@ function deleteForever() {
                 <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50 right-12" :class="[popupPosition === 'top' ? 
                 'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
                   <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)"  @pin-task="togglePin(t)" 
-                    @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
+                    @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)" :lists="lists"/>
                 </div>
               </div>
             </div>
