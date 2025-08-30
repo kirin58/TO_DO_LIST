@@ -7,8 +7,15 @@
         placeholder="Search tasks, tags, lists and filters..."
         v-model="query"
     />
-    
-    <p style="margin-top:15px; text-align:center; color:#888;">
+     <div class="flex items-center justify-center h-1/2">
+            <div class="SearchImg">
+              <img 
+                src="/public/1 .png"
+                class="w-full h-full object-contain opacity-80"
+                >
+            </div>
+      </div>      
+    <p style="margin-top:15px; text-align:center; color:#888;margin-bottom: 35px;">
         Search tasks, tags, lists and filters
     </p>
   </div>
@@ -46,5 +53,10 @@ function closeSearch() {
   cursor: pointer;
   font-size: 20px;
   color: #888;
+}
+.SearchImg{
+    width: 150px;
+    height: 150px;
+    margin-top: 30px;
 }
 </style>
