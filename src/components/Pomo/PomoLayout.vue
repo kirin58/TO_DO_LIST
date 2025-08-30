@@ -67,7 +67,7 @@
                                         min="1"
                                         max="99"
                                         v-model.number="inputMinutes"
-                                        class="text-center border-b border-gray-300 outline-none font-semibold"
+                                        class="text-center border-b border-gray-500 outline-none font-semibold"
                                         style="font-size:1.8rem; width: 45px; height: 2.5rem; line-height: 2.2rem;"
                                     />
                                     <span class="text-gray-500 text-xl ml-1">Min</span>
