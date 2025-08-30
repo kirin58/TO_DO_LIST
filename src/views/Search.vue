@@ -1,22 +1,28 @@
 <template>
-  <div v-if="showSearch" class="search-box">
-    <button class="flex w-full justify-end mb-3 pr-3" @click="closeSearch"><p class="text-red-500">Close</p></button>
+  <div v-if="showSearch" class="bg-white p-5 rounded-xl w-[600px] max-w-[90%] shadow-xl">
+    <button class="flex w-full justify-end mb-3 pr-3" @click="closeSearch">
+      <p class="text-red-500">Close</p>
+    </button>
+
     <input
-        ref="searchInput"
-        type="text"
-        placeholder="Search tasks, tags, lists and filters..."
-        v-model="query"
+      ref="searchInput"
+      type="text"
+      placeholder="Search"
+      v-model="query"
+      class="w-full p-2 text-base rounded-md border-b outline-none placeholder-gray-400 text-gray-700"
     />
-     <div class="flex items-center justify-center h-1/2">
-            <div class="SearchImg">
-              <img 
-                src="/public/1 .png"
-                class="w-full h-full object-contain opacity-80"
-                >
-            </div>
-      </div>      
-    <p style="margin-top:15px; text-align:center; color:#888;margin-bottom: 35px;">
-        Search tasks, tags, lists and filters
+
+    <div class="flex items-center justify-center h-1/2">
+      <div class="w-[150px] h-[150px] mt-8">
+        <img 
+          src="/public/1 .png"
+          class="w-full h-full object-contain opacity-80"
+        >
+      </div>
+    </div>      
+
+    <p class="mt-4 mb-9 text-center text-gray-500">
+      Search tasks, tags, lists and filters
     </p>
   </div>
 </template>
@@ -28,35 +34,6 @@ const showSearch = ref(true);
 const query = ref('');
 
 function closeSearch() {
-    showSearch.value = false;
+  showSearch.value = false;
 }
 </script>
-
-<style scoped>
-.search-box {
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-  width: 600px;
-  max-width: 90%;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-}
-.search-box input {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-}
-.close-btn {
-  float: right;
-  cursor: pointer;
-  font-size: 20px;
-  color: #888;
-}
-.SearchImg{
-    width: 150px;
-    height: 150px;
-    margin-top: 30px;
-}
-</style>
