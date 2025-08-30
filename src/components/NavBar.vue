@@ -6,14 +6,14 @@
                 <router-link to="/Inbox" exact-active-class="menu_active">
                     <i class='menu bx  bxs-check-square'  ></i>
                 </router-link>
-                <router-link to="#" exact-active-class="menu_active">
+                <router-link to="/Search" exact-active-class="menu_active">
                     <i class='menu bx  bx-search'></i>
                 </router-link>
-                <router-link to="#" exact-active-class="menu_active">
+                <router-link to="/Calender" exact-active-class="menu_active">
                     <i class='menu bx  bx-calendar'  ></i></router-link>
                 <router-link to="/Pomodoro" exact-active-class="menu_active">
                     <i class='menu bx  bxs-alarm'  ></i> </router-link>
-                <router-link to="#" exact-active-class="menu_active">
+                <router-link to="/Matrix" exact-active-class="menu_active">
                     <i class='menu bx  bxs-grid'  ></i>
                 </router-link>
             </nav>
