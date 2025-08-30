@@ -6,9 +6,8 @@
                 <router-link to="/Inbox" exact-active-class="menu_active">
                     <i class='menu bx  bxs-check-square'  ></i>
                 </router-link>
-                <router-link to="/Search" exact-active-class="menu_active">
-                    <i class='menu bx  bx-search'></i>
-                </router-link>
+                <button @click="toggleSearch"><i class='menu bx  bx-search'></i></button>
+                <Search v-if="showSearch" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"></Search>
                 <router-link to="/Calender" exact-active-class="menu_active">
                     <i class='menu bx  bx-calendar'  ></i></router-link>
                 <router-link to="/Pomodoro" exact-active-class="menu_active">
@@ -31,6 +30,15 @@
         </div>
     </header>
 </template>
+<script setup> 
+import { ref } from 'vue';
+import Search from '@/views/Search.vue';
+
+const showSearch = ref(false);
+function toggleSearch() {
+    showSearch.value = !showSearch.value;
+}
+</script>
 <style>
 .menu{
     @apply text-3xl text-slate-200 hover:text-slate-100;
