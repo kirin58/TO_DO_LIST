@@ -171,8 +171,6 @@ function setPriority(task, color) {
   saveTasks()
   fetchTasks()
 }
-<<<<<<< HEAD
-=======
 function togglePin(task) {
   task.pinned = !task.pinned
   tasks.value.sort((a, b) => {
@@ -218,7 +216,6 @@ onMounted(() => {
   const savedLists = localStorage.getItem('myLists')
   if (savedLists) lists.value = JSON.parse(savedLists)
 })
->>>>>>> parent of bc2ba8e (list)
 </script>
 
 <template>
@@ -264,17 +261,10 @@ onMounted(() => {
                 <button @click="(e) => togglePopup(t.id,e)">
                   <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
                 </button>
-<<<<<<< HEAD
                 <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50" :class="popupPosition === 'top' ? 
                 'bottom-full mb-2' : 'top-full mt-2' ,'right-0'">
                   <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)" 
                     @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)"/>
-=======
-                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50 right-12" :class="[popupPosition === 'top' ? 
-                'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
-                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)"  @pin-task="togglePin(t)" 
-                    @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)" :lists="lists"/>
->>>>>>> parent of bc2ba8e (list)
                 </div>
               </div>
             </div>
