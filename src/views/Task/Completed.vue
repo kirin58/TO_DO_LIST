@@ -2,14 +2,14 @@
 import NavBar from '@/components/NavBar.vue';
 import TaskBar from '@/components/Task/TaskBar.vue';
 import TaskContent from '@/components/Task/TaskContent.vue';
-import emptytask from '@/assets/NoInbox.png';
+import emptytask from '@/assets/NoCompleted.png';
 
-const title = "Inbox"
+const title = "Completed"
 </script>
 <template>
     <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContent :emptytask="emptytask" :title="title" mode="inbox" :empty="'No tasks'" :emptydis="'Captures all your tasks and ideas'"/>
+        <TaskContent :emptytask="emptytask" :title="title" :empty="'No tasks completed yet'" :emptydis="'keep it up'" mode="completed"/>
     </div>
 </template>

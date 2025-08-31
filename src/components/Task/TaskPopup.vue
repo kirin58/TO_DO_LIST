@@ -1,16 +1,18 @@
 <script setup>
-import { ref ,watch} from 'vue'
+import { onMounted, ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
+import Listspopup from '../Lists/Listspopup.vue'
 
 const props = defineProps({
-    modelValue: String
+  lists: Array,
+  modelValue: String,
+  isNew: { type: Boolean, default: false }
 })
-const popupPosition = ref('bottom')
-const emit = defineEmits(['update:modelValue','delete'])
+const popupPosition = ref('top')
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task'])
 
 const selectDate = ref(props.modelValue || undefined)
-//เลือกวันที่
 watch(selectDate, (newValue) => {
     emit('update:modelValue', newValue)
 })
@@ -22,44 +24,63 @@ const setDateOffset = (days) => {
     selectDate.value = iso
     emit('update:modelValue', iso)
 }
-//เลือกธง
+
 function setPriority(color) {
-  emit('update:priority', color)
+  emit('set-priority', color)
+}
+
+const showList = ref(false)
+
+const internalLists = ref([...props.lists])
+
+watch(
+  () => props.lists,
+  (newVal) => {
+    internalLists.value = [...newVal]
+  }
+)
+
+function handleDeleteList(id) {
+  internalLists.value = internalLists.value.filter(l => l.id !== id)
+  
+  emit('update-lists', internalLists.value)
 }
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
-        <div class="my-2">
-            <div class="text-sm">Date</div>
-            <div class="taskpopup">
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(0)">
-                        <i class='bx bxs-calendar-heart'></i>
-                    </button>
+        <template v-if="!props.isNew">
+            <div class="my-2">
+                <div class="text-sm">Date</div>
+                <div class="taskpopup">
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(0)">
+                            <i class='bx bxs-calendar-heart'></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(1)">
+                            <i class='bx  bx-calendar-week'  ></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <button type="button" class="text-x" @click="setDateOffset(7)">
+                            <i class='bx  bxs-calendar-minus'  ></i>
+                        </button>
+                    </div>
+                    <div class="relative flex items-center">
+                        <Datepicker :placement="'left-start'" :auto-apply="true":enable-time-picker="false"locale="th"
+                        input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
+                            <template #trigger>
+                                <button type="button" class="text-x">
+                                    <i class='bx  bxs-calendar'  ></i>
+                                </button>
+                            </template>
+                        </Datepicker>
+                    </div>    
                 </div>
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(1)">
-                        <i class='bx  bx-calendar-week'  ></i>
-                    </button>
-                </div>
-                <div class="relative flex items-center">
-                    <button type="button" class="text-x" @click="setDateOffset(7)">
-                        <i class='bx  bxs-calendar-minus'  ></i>
-                    </button>
-                </div>
-                <div class="relative flex items-center">
-                    <Datepicker :placement="'left-start'" :auto-apply="true":enable-time-picker="false"locale="th"
-                    input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
-                        <template #trigger>
-                            <button type="button" class="text-x">
-                            <i class='bx  bxs-calendar'  ></i>
-                            </button>
-                        </template>
-                    </Datepicker>
-                </div>    
             </div>
-        </div>
-        <div class="taskpopup_line"></div>
+            <div class="taskpopup_line"></div>
+        </template>
         <div class="my-2">
             <div class="text-sm">Priority</div>
             <div class="taskpopup">
@@ -79,25 +100,35 @@ function setPriority(color) {
         </div>
         <div class="taskpopup_line"></div>
         <div class="taskpopup_func">
-            <button><i class='bx  bx-pin'  ></i></button>
+            <button @click="emit('pin-task')"><i class='bx  bx-pin'  ></i></button>
             <p>Pin</p>
         </div>
-        <div class="taskpopup_func justify-between">
-            <div class="flex gap-2">
-                <button><i class='bx  bx-chevron-right-square'  ></i> </button>
-                <p>Move To</p>
+        <div>
+            <div class="taskpopup_func justify-between">
+                <div class="flex gap-2">
+                    <button><i class='bx  bx-chevron-right-square'  ></i> </button>
+                    <p>Lists</p>
+                </div>
+                <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <button><i class='bx  bxs-chevron-right '></i></button>
+            <listspopup v-if="showList" :lists="internalLists" :Listbar="false" @delete-list="handleDeleteList"></listspopup>
         </div>
-        <div class="taskpopup_func">
-            <button>#</button>
-            <p>Tags</p>
+        <div>
+            <div class="taskpopup_func justify-between">
+                <div class="flex gap-2">
+                    <button>#</button>
+                    <p>Tags</p>
+                </div>
+                <i class='bx  bxs-chevron-right '></i>
+            </div>
         </div>
-        <div class="taskpopup_line"></div>
-        <div @click="emit('delete')" class="taskpopup_func text-red-500">
-            <button ><i class='bx  bx-trash'></i></button>
-            <p>Delete</p>
-        </div>
+        <template v-if="!props.isNew">
+            <div class="taskpopup_line"></div>
+            <div @click="emit('delete')" class="taskpopup_func text-red-500">
+                <button ><i class='bx  bx-trash'></i></button>
+                <p>Delete</p>
+            </div>
+        </template>
     </div>
 </template>
 <style scoped>
@@ -108,6 +139,12 @@ function setPriority(color) {
     @apply h-px my-2 bg-slate-300;
 }
 .taskpopup_func{
-    @apply flex my-2 gap-2;
+    @apply flex items-center my-2 gap-2;
+}
+.fade-enter-active, .fade-leave-active {
+  @apply transition-opacity duration-200;
+}
+.fade-enter-from, .fade-leave-to {
+  @apply opacity-0;
 }
 </style>
