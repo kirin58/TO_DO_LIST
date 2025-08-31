@@ -45,7 +45,7 @@
         </div>
         <div class="px-6" v-if="pomoSessions.length > 0">
             <div v-for="(session, idx) in reversedSessions" :key="idx" class="flex items-center justify-between py-1">
-                <span class="text-orange-400 font-bold ">
+                <span class="text-orange-400 font-bold">
                     <i class='bx bx-timer'></i>
                 </span>
                 <span class="ml-2 text-gray-700 text-sm">
