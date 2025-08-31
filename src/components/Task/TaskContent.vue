@@ -183,17 +183,19 @@ function setPriority(task, color) {
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
-      <div class="f-center bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="w-3/5 bg-transparent text-slate-500 outline-none"/>
-        <i v-if="newTaskPriority" :class="flagClass(newTaskPriority)" class="w-1/5 ml-2"></i>
-        <input type="date" v-model="dueDate" locale="th" class="w-1/5 flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
-        <div class="relative">
-          <button @click="(e) => togglePopup('new',e)">
-            <i class='bx  bx-chevron-down text-3xl'  ></i> 
-          </button>
-          <div v-if="taskMenu === 'new'" @click.self="closePopup" class="absolute z-99" 
-          :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2', 'right-0']"> 
-            <TaskPopup isNew @set-priority="(color) => { newTaskPriority.value = color; closePopup(); }" />
+      <div class="f-center  bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
+        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="w-4/5 bg-transparent text-slate-500 outline-none"/>
+        <div class="flex w-1/5 justify-between items-center">
+          <i v-if="newTaskPriority" :class="flagClass(newTaskPriority)" class=" ml-2"></i>
+          <input type="date" v-model="dueDate" locale="th" class="flex  items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+          <div class="relative">
+            <button @click="(e) => togglePopup('new',e)">
+              <i class='bx  bx-chevron-down text-3xl'  ></i> 
+            </button>
+            <div v-if="taskMenu === 'new'" @click.self="closePopup" class="absolute z-99" 
+            :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2', 'right-0']"> 
+              <TaskPopup isNew @set-priority="(color) => { newTaskPriority.value = color; closePopup(); }" />
+            </div>
           </div>
         </div>
       </div>
