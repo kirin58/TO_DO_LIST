@@ -296,7 +296,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-3/5 h-screen">
+  <div class="w-[57%] h-screen">
     <div class="flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
@@ -396,7 +396,7 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <div class="w-1/4 h-screen flex">
+  <div class="h-screen flex">
     <div class="h-screen w-px bg-zinc-300 "></div>
     <img src="/src/assets/RightBG.png" class="h-screen">
   </div>
