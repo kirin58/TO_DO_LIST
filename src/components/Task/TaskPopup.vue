@@ -29,22 +29,10 @@ function setPriority(color) {
   emit('set-priority', color)
 }
 
+
+
 const showList = ref(false)
 
-const internalLists = ref([...props.lists])
-
-watch(
-  () => props.lists,
-  (newVal) => {
-    internalLists.value = [...newVal]
-  }
-)
-
-function handleDeleteList(id) {
-  internalLists.value = internalLists.value.filter(l => l.id !== id)
-  
-  emit('update-lists', internalLists.value)
-}
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -111,7 +99,7 @@ function handleDeleteList(id) {
                 </div>
                 <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <listspopup v-if="showList" :lists="internalLists" :Listbar="false" @delete-list="handleDeleteList"></listspopup>
+            <listspopup v-if="showList" :lists="lists" :Listbar="false" @delete-list="handleDeleteList"></listspopup>
         </div>
         <div>
             <div class="taskpopup_func justify-between">
