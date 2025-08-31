@@ -17,7 +17,6 @@ function handleAddList(newList){
         text: newList
     })
 }
-
 function deleteList(id) {
   lists.value = lists.value.filter(l => l.id !== id)
 }
@@ -51,14 +50,6 @@ watch(tags, (newVal) => {
 }, { deep: true })
 
 const showList = ref(false)
-
-function updateList(updated){
-  const index = lists.value.findIndex(l => l.id === updated.id)
-  if(index !== -1){
-    lists.value[index].text = updated.text
-    localStorage.setItem('myLists', JSON.stringify(lists.value))
-  }
-}
 </script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
@@ -75,7 +66,7 @@ function updateList(updated){
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i></div>
                 </div>
                 <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
-                <listspopup v-if="showList" :lists="lists" :Listpopup="false" @delete-list="deleteList" @update-list="updateList"></listspopup>
+                <listspopup v-if="showList" :lists="lists" :Listpopup="false" @delete-list="deleteList"></listspopup>
                 
                 <div class="list">
                     <div class="flex items-center"><i class='bx  bxs-chevron-right '></i> <p class="text-md">Tags</p></div>
