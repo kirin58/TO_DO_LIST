@@ -5,13 +5,24 @@ import Signup from '@/views/Register/Sign_up.vue'
 import Resetpassword from '@/views/Register/Reset_Password.vue'
 import Inbox from '@/views/Task/Inbox.vue'
 import Pomodoro from '@/views/Pomodoro.vue'
+import Today from '@/views/Task/Today.vue'
+import Next7 from '@/views/Task/Next7.vue'
+import Completed from '@/views/Task/Completed.vue'
+import Trash from '@/views/Task/Trash.vue'
+
+
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/Login' , name: 'Login', component: Login},
   { path: '/Inbox' , name: 'Inbox', component: Inbox},
+  { path: '/Today' , name: 'Today', component: Today},
+  { path: '/Next7' , name: 'Next7', component: Next7},
+  { path: '/Completed' , name: 'Completed', component: Completed},
+  { path: '/Trash', name: 'Trash', component: Trash},
   { path: '/Signup' , name: 'Signup', component: Signup},
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
   { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
+
 ]
 
 const router = createRouter({
