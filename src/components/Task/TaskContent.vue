@@ -219,7 +219,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-3/5 h-screen">
+  <div class="w-[57%] h-screen">
     <div class="flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p class="text-2xl font-black text-stone-600">Inbox</p>
