@@ -396,9 +396,9 @@ onMounted(() => {
       </div>
     </div>
   </div>
-  <div class="w-1/4 h-screen flex">
+  <div class="w-2/5 h-screen flex justify-end">
     <div class="h-screen w-px bg-zinc-300 "></div>
-    <img src="/src/assets/RightBG.png" class="h-screen">
+    <img src="/src/assets/RightBG.png" class="h-screen ">
   </div>
 </template>
 <style>
