@@ -1,14 +1,18 @@
 <script setup>
-import { onMounted, ref ,watch} from 'vue'
+import { ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Listspopup from '../Lists/Listspopup.vue'
 
 const props = defineProps({
-  lists: Array,
+    lists: {
+    type: Array,
+    default: () => []
+  },
   modelValue: String,
   isNew: { type: Boolean, default: false }
 })
+
 const popupPosition = ref('top')
 const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task'])
 
@@ -33,12 +37,13 @@ const showList = ref(false)
 
 const internalLists = ref([...props.lists])
 
-watch(
-  () => props.lists,
-  (newVal) => {
-    internalLists.value = [...newVal]
-  }
-)
+watch(() => props.tasks, (newTasks) => {
+    const areDifferent = newTasks.length !== tasksForDraggableMutable.value.length ||
+    newTasks.some((t, i) => t.id !== tasksForDraggableMutable.value[i]?.id);
+    if (areDifferent) { tasksForDraggableMutable.value = [...newTasks]; }
+});
+
+
 
 function handleDeleteList(id) {
   internalLists.value = internalLists.value.filter(l => l.id !== id)
