@@ -1,8 +1,9 @@
 <script setup>
-import {ref,onMounted,watch, computed} from 'vue'
+import {ref,onMounted,watch} from 'vue'
 import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
 import Listspopup from '../Lists/Listspopup.vue';
+import Tagpopup from '../tags/tagpopup.vue';
 
 const props = defineProps({
     lists: Array,
@@ -10,27 +11,45 @@ const props = defineProps({
 })
 
 const lists = ref([])
+const tags = ref([])
+
 const showListInput = ref(false)
+const showTagInput = ref(false)
+const showList = ref(false)
+const showTag = ref(false)
+
 function handleAddList(newList){
-    lists.value.push({
-        id: Date.now(),
-        text: newList
-    })
-}
-function deleteList(id) {
-  lists.value = lists.value.filter(l => l.id !== id)
+  lists.value.push({ id: Date.now(), text: newList })
+  localStorage.setItem('myLists', JSON.stringify(lists.value))
 }
 
-const tags = ref([])
-const showTagInput = ref(false)
+function updateList(updatedlist) {
+  const index = lists.value.findIndex(l => l.id === updatedlist.id)
+  if (index !== -1) {
+    lists.value[index] = updatedlist
+    localStorage.setItem('myLists', JSON.stringify(lists.value))
+  }
+}
+
+function deleteList(id) {
+    lists.value = lists.value.filter(l => l.id !== id)
+    localStorage.setItem('myLists', JSON.stringify(lists.value))
+}
+
 function handleAddTag(newTag){
-    tags.value.push({
-        id: Date.now(),
-        text: newTag
-    })
+    tags.value.push({ id: Date.now(), text: newTag })
+    localStorage.setItem('myTags', JSON.stringify(tags.value))
+}
+function updateTag(updatedtag) {
+  const index = lists.value.findIndex(l => l.id === updatedtag.id)
+  if (index !== -1) {
+    lists.value[index] = updatedtag
+    localStorage.setItem('myTags', JSON.stringify(tags.value))
+  }
 }
 function deleteTags(id){
     tags.value = tags.value.filter(t => t.id !== id) 
+    localStorage.setItem('myTagts', JSON.stringify(tags.value))
 }
 
 onMounted(() => {
@@ -40,16 +59,6 @@ onMounted(() => {
   const savedTags = localStorage.getItem('myTags')
   if (savedTags) tags.value = JSON.parse(savedTags)
 })
-
-watch(lists, (newVal) => {
-  localStorage.setItem('myLists', JSON.stringify(newVal))
-}, { deep: true })
-
-watch(tags, (newVal) => {
-  localStorage.setItem('myTags', JSON.stringify(newVal))
-}, { deep: true })
-
-const showList = ref(false)
 </script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
@@ -66,17 +75,14 @@ const showList = ref(false)
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i></div>
                 </div>
                 <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
-                <listspopup v-if="showList" :lists="lists" :Listpopup="false" @delete-list="deleteList"></listspopup>
+                <listspopup v-if="showList" :lists="lists" :Listbar="true" :Listpopup="false" @update-list="updateList" @delete-list="deleteList"></listspopup>
                 
                 <div class="list">
-                    <div class="flex items-center"><i class='bx  bxs-chevron-right '></i> <p class="text-md">Tags</p></div>
+                    <div class="flex items-center"><i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i> <p class="text-md">Tags</p></div>
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> </div>
                 </div>
                 <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>
-                <div v-for="t in tags" :key="t.id" class="flex items-center justify-between mx-3 my-2 text-sm">
-                    <span>{{ t.text }}</span>
-                    <button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
-                </div>
+                <Tagpopup v-if="showTag" :tags="tags" :tagbar="true" :tagpopup="false" @update-tag="updateTag" @delete-tag="deleteTags"/>
             </div>
         </div>
         
