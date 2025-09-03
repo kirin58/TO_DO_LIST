@@ -2,7 +2,7 @@
 import { ref} from 'vue'
 // state
 const task = ref('')
-const tasks = ref([])
+// const tasks = ref([])
 const dueDate = ref('')
 
 const emit = defineEmits(['add-task'])

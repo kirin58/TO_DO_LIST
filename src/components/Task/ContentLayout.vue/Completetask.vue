@@ -15,6 +15,7 @@ const props = defineProps({
 const emit = defineEmits(['saveTasks','uncomplete-task'])
 const showCompleted = ref(true)
 
+
 //function
 function uncompleteTask(task) {
   emit('uncomplete-task', task)
@@ -25,14 +26,14 @@ function onDragEnd() {
 }
 </script>
 <template>
-    <div class="h-2/6 pl-5 overflow-y-auto">
+    <div class="flex flex-col h-full">
         <div class="flex items-center" @click="showCompleted = !showCompleted">
             <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
             <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ props.completedTasks.length }})</h1>
         </div>
-        <div v-show="showCompleted" class="space-y-2">
+        <div v-show="showCompleted" class="flex-1 overflow-y-auto ">
             <draggable v-model="props.completedTasks" item-key="id" class="space-y-2" handle=".drag-handle"   
-            :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
+            :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen" @end="onDragEnd">
                 <template #item="{ element: t }">
                     <div :key="t.id" class="flex items-center">
                     <button class="drag-handle icon-btn">

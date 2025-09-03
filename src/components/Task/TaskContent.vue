@@ -12,26 +12,27 @@ import Emptytask from './ContentLayout.vue/Emptytask.vue'
 const tasks = ref([])
 const completedTasks = ref([])
 const showShuffle = ref(false)
-const trashTasks = ref([])
+
+//Edit State
 const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
+
+
+// Sort State
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
+const sortByNone = ref(true)
 
+const trashTasks = ref([])
+
+//Props
 const props = defineProps({
   emptytask: String,
   empty: String,
   emptydis: String,
   title: String,
   mode: { type: String, default: 'today' }
-})
-
-const route = useRoute()
-const routeMode = computed(() => {
-  if (props.mode === 'inbox') return 'inbox'
-  if (props.mode === 'next7') return 'next7'
-  return 'today'
 })
 
 const pageTitle = computed(() => {
@@ -44,6 +45,7 @@ const pageTitle = computed(() => {
   }
 })
 
+//Pageshow
 const today = new Date()
 today.setHours(0,0,0,0)
 
@@ -83,18 +85,6 @@ function saveTasks() {
     complete: completedTasks.value,
     trash: trashTasks.value
   }))
-}
-
-function sortByDateFn(a, b) {
-  if (!a.dueDate && !b.dueDate) return 0
-  if (!a.dueDate) return 1
-  if (!b.dueDate) return -1
-  return new Date(a.dueDate) - new Date(b.dueDate)
-}
-
-function sortByPriorityFn(a, b) {
-  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
 }
 
 function fetchTasks() {
@@ -180,6 +170,18 @@ function uncompleteTask(task) {
   saveTasks()
 }
 
+function sortByDateFn(a, b) {
+  if (!a.dueDate && !b.dueDate) return 0
+  if (!a.dueDate) return 1
+  if (!b.dueDate) return -1
+  return new Date(a.dueDate) - new Date(b.dueDate)
+}
+
+function sortByPriorityFn(a, b) {
+  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+}
+
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
 }
@@ -187,6 +189,7 @@ function toggleShuffle() {
 function handleSelectType(type) {
   sortByDate.value = type === 'Date'
   sortByPriority.value = type === 'Priority'
+  sortByNone.value = type === 'None'
 
   let sorted = [...tasksForDraggable.value]
 
@@ -295,8 +298,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-[57%] h-screen">
-    <div class="flex flex-col p-6 ">
+  <div class="w-[57%] h-screen pl-5">
+    <div class="h-[18%] flex flex-col p-6 ">
       <div class="f-center justify-between p-2 mb-2 ">
         <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
         <div class="text-stone-400 text-2xl">
@@ -309,7 +312,8 @@ onMounted(() => {
         <Createtask @add-task="addTask"></Createtask>
       </div>
     </div>
-    <div class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
+    <div class="w-full overflow-y-auto  pr-14"
+    :class="completedTasks.length > 0 ? 'h-[42%]' : 'h-[82%]'">
       <!-- TaskLists -->
       <div v-show="tasksForDraggableMutable.length > 0" >
         <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
@@ -322,7 +326,7 @@ onMounted(() => {
       <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
     </div>
     <!-- Complete -->
-    <div v-if="completedTasks.length > 0">
+    <div v-if="completedTasks.length > 0" class="w-full h-[40%]">
       <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
     </div>
     <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
