@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref,onMounted} from 'vue'
+import {ref,onMounted , nextTick, watch} from 'vue'
 
 const props = defineProps({ 
     tags: Array,
@@ -7,39 +7,72 @@ const props = defineProps({
     tagbar: {type: Boolean, default: true}
 })
 
-const emit = defineEmits(['delete-tag'])
+const emit = defineEmits(['delete-tag','update-tag'])
 
-const tags = ref([])
+const localtags = ref([])
+const editingId = ref(null)
+const editText = ref('')
 
-function fetchtags() {
-  tags.value = JSON.parse(localStorage.getItem('myTags')) || []
-}
+watch(() => props.tags, (newVal) => {
+  localtags.value = [...newVal]
+}, { immediate: true })
 
 function deleteTags(id) {
-  let saved = JSON.parse(localStorage.getItem('myTags')) || []
-  saved = saved.filter(t => t.id !== id)
-  localStorage.setItem('myTags', JSON.stringify(saved))
-
-  emit('delete-tag', id)
-  fetchtags()
+    emit('delete-tag', id)
 }
 
+function startEdit(tag) {
+  editingId.value = tag.id
+  editText.value = tag.text
+  nextTick(() => {
+    const input = document.getElementById(`input-${tag.id}`)
+    if (input) input.focus()
+  })
+}
+
+function saveEdit(tag) {
+  if (!editText.value.trim()) return
+  
+  const index = localtags.value.findIndex(t => t.id === tag.id)
+  if (index !== -1) {
+    localtags.value[index].text = editText.value.trim()
+
+    localStorage.setItem('myTags', JSON.stringify(localtags.value))
+    emit('update-tag', localtags.value[index])
+  }
+
+  editingId.value = null
+  editText.value = ''
+}
 
 onMounted(() => {
-  fetchtags()
+    const saved = JSON.parse(localStorage.getItem('myTags')) || []
+    if (saved.length > 0) {
+        localtags.value = saved
+    } else {
+        localtags.value = [...props.tags]
+    }
 })
 
 </script>
 
 <template>
     <template v-if="props.tagbar">
-        <div v-for="t in tags" :key="t.id" class="tagstyle ">
-            <span class="mb-2">{{ t.text }}</span>
+        <div v-for="t in props.tags" :key="t.id" class="tagstyle ">
+            <template v-if="editingId === t.id">
+                <input :id="`input-${t.id}`" v-model="editText" 
+                    @keyup.enter="saveEdit(t)" 
+                    @blur="saveEdit(t)"
+                    class="bg-transparent border-b border-gray-400 focus:outline-none"/>
+            </template>
+            <template v-else>    
+                <span @click="startEdit(t)" class="cursor-text select-none">{{ t.text }}</span>
+            </template>
             <button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
         </div>
     </template>
     <template v-if="props.tagpopup">
-        <div v-for="t in tags" :key="t.id" class="tagstyle">
+        <div v-for="t in props.tags" :key="t.id" class="tagstyle">
             <span class="mb-2">{{ t.text }}</span>
         </div>
     </template>

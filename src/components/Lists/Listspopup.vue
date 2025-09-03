@@ -17,14 +17,8 @@ watch(() => props.lists, (newVal) => {
   localLists.value = [...newVal]
 }, { immediate: true })
 
-function fetchLists() {
-  localLists.value = JSON.parse(localStorage.getItem('myLists')) || []
-}
 
 function deleteList(id) {
-  const updated = localLists.value.filter(l => l.id !== id)
-  localLists.value = updated
-  localStorage.setItem('myLists', JSON.stringify(updated))
   emit('delete-list', id)
 }
 
@@ -32,6 +26,11 @@ function startEdit(list) {
   editingId.value = list.id
   editText.value = list.text
   nextTick(() => {
+    const input = document.getElementById(`input-${list.id}`)
+    if (input) input.focus()
+  })
+
+    nextTick(() => {
     const input = document.getElementById(`input-${list.id}`)
     if (input) input.focus()
   })
@@ -65,21 +64,20 @@ onMounted(() => {
 
 <template>
     <template v-if="props.Listbar">
-        <div v-for="l in localLists" :key="l.id" class="liststyle">
-        <template v-if="editingId === l.id">
-            <input :id="`input-${l.id}`" v-model="editText" 
-                @keyup.enter="saveEdit(l)" 
-                @blur="saveEdit(l)"
-                class="bg-transparent border-b border-gray-400 focus:outline-none"/>
-        </template>
-        <template v-else>
-            <span @click="startEdit(l)" class="cursor-text select-none">{{ l.text }}</span>
-        </template>
-        <button @click="deleteList(l.id)"><i class='bx bx-trash text-red-500'></i></button>
+        <div v-for="l in props.lists" :key="l.id" class="liststyle">
+            <template v-if="editingId === l.id">
+                <input :id="`input-${l.id}`" v-model="editText" 
+                    @keyup.enter="saveEdit(l)" @blur="saveEdit(l)"
+                    class="bg-transparent border-b border-gray-400 focus:outline-none"/>
+            </template>
+            <template v-else>
+                <span @click="startEdit(l)" class="cursor-text select-none">{{ l.text }}</span>
+            </template>
+            <button @click="deleteList(l.id)"><i class='bx bx-trash text-red-500'></i></button>
         </div>
     </template>
     <template v-if="props.Listpopup">
-        <div v-for="l in localLists" :key="l.id" class="liststyle">
+        <div v-for="l in props.lists" :key="l.id" class="liststyle">
             <span class="mb-2">{{ l.text }}</span>
         </div>
     </template>
