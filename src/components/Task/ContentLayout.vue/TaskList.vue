@@ -24,7 +24,6 @@ const emit = defineEmits([
 const taskMenu = ref(null)
 const popupPosition = ref('bottom')
 const editInput = ref(null)
-const lists = ref([])
 
 function togglePopup(id, event) {
   taskMenu.value = taskMenu.value === id ? null : id;
@@ -91,7 +90,7 @@ watch(() => props.editText, (val) => {
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
                 <TaskPopup v-model="t.dueDate"@update:modelValue="$emit('edit-date', t, $event)"
                 @pin-task="$emit('pin-task', t)"@set-priority="$emit('set-priority', t, $event)"
-                @delete="$emit('delete-task', t.id)":lists="lists"/>
+                @delete="$emit('delete-task', t.id)":lists="props.lists" :tags="props.tags"/>
           </div>
         </div>
       </div>

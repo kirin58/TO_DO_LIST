@@ -9,12 +9,22 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
+    tags: {
+        type: Array,
+        default: () => []
+    },
+    tasks: {
+    type: Array,
+    default: () => []
+  },
   modelValue: String,
   isNew: { type: Boolean, default: false }
 })
 
-const popupPosition = ref('top')
-const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task'])
+const tasksForDraggableMutable = ref([...props.tasks])
+
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task' 
+    ,'update-lists','delete-list'])
 
 const selectDate = ref(props.modelValue || undefined)
 watch(selectDate, (newValue) => {
@@ -37,17 +47,25 @@ const showList = ref(false)
 
 const internalLists = ref([...props.lists])
 
-watch(() => props.tasks, (newTasks) => {
-    const areDifferent = newTasks.length !== tasksForDraggableMutable.value.length ||
-    newTasks.some((t, i) => t.id !== tasksForDraggableMutable.value[i]?.id);
-    if (areDifferent) { tasksForDraggableMutable.value = [...newTasks]; }
-});
 
+watch(
+  () => props.tasks,
+  (newTasks) => {
+    tasksForDraggableMutable.value = Array.isArray(newTasks) ? [...newTasks] : []
+  },
+  { deep: true, immediate: true }
+)
 
+watch(
+  () => props.lists,
+  (newLists) => {
+    internalLists.value = Array.isArray(newLists) ? [...newLists] : []
+  },
+  { immediate: true }
+)
 
 function handleDeleteList(id) {
   internalLists.value = internalLists.value.filter(l => l.id !== id)
-  
   emit('update-lists', internalLists.value)
 }
 </script>
@@ -73,7 +91,7 @@ function handleDeleteList(id) {
                         </button>
                     </div>
                     <div class="relative flex items-center">
-                        <Datepicker :placement="'left-start'" :auto-apply="true":enable-time-picker="false"locale="th"
+                        <Datepicker :placement="'left-start'" :auto-apply="true" :enable-time-picker="false" locale="th"
                         input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
                             <template #trigger>
                                 <button type="button" class="text-x">
@@ -116,7 +134,7 @@ function handleDeleteList(id) {
                 </div>
                 <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <listspopup v-if="showList" :lists="internalLists" :Listbar="false" @delete-list="handleDeleteList"></listspopup>
+            <Listspopup v-if="showList && internalLists.length > 0" :lists="internalLists" :Listbar="false" :Listpopup="true" @delete-list="handleDeleteList"/>
         </div>
         <div>
             <div class="taskpopup_func justify-between">
@@ -124,7 +142,7 @@ function handleDeleteList(id) {
                     <button>#</button>
                     <p>Tags</p>
                 </div>
-                <i class='bx  bxs-chevron-right '></i>
+                <i @click="showTag = !showTag" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
         </div>
         <template v-if="!props.isNew">

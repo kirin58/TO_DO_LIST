@@ -1,8 +1,9 @@
 <script setup>
-import {ref,onMounted,watch, computed} from 'vue'
+import {ref,onMounted,watch} from 'vue'
 import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
 import Listspopup from '../Lists/Listspopup.vue';
+import Tagpopup from '../tags/tagpopup.vue';
 
 const props = defineProps({
     lists: Array,
@@ -10,24 +11,28 @@ const props = defineProps({
 })
 
 const lists = ref([])
+const tags = ref([])
+
 const showListInput = ref(false)
+const showTagInput = ref(false)
+const showList = ref(false)
+const showTag = ref(false)
+
 function handleAddList(newList){
     lists.value.push({
         id: Date.now(),
         text: newList
     })
 }
-function deleteList(id) {
-  lists.value = lists.value.filter(l => l.id !== id)
-}
-
-const tags = ref([])
-const showTagInput = ref(false)
 function handleAddTag(newTag){
     tags.value.push({
         id: Date.now(),
         text: newTag
     })
+}
+
+function deleteList(id) {
+  lists.value = lists.value.filter(l => l.id !== id)
 }
 function deleteTags(id){
     tags.value = tags.value.filter(t => t.id !== id) 
@@ -48,8 +53,6 @@ watch(lists, (newVal) => {
 watch(tags, (newVal) => {
   localStorage.setItem('myTags', JSON.stringify(newVal))
 }, { deep: true })
-
-const showList = ref(false)
 </script>
 <template>
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
@@ -66,17 +69,14 @@ const showList = ref(false)
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i></div>
                 </div>
                 <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
-                <listspopup v-if="showList" :lists="lists" :Listpopup="false" @delete-list="deleteList"></listspopup>
+                <listspopup v-if="showList" :lists="lists" :Listbar="true" :Listpopup="false" @delete-list="deleteList"></listspopup>
                 
                 <div class="list">
-                    <div class="flex items-center"><i class='bx  bxs-chevron-right '></i> <p class="text-md">Tags</p></div>
+                    <div class="flex items-center"><i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i> <p class="text-md">Tags</p></div>
                     <div><i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> </div>
                 </div>
                 <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>
-                <div v-for="t in tags" :key="t.id" class="flex items-center justify-between mx-3 my-2 text-sm">
-                    <span>{{ t.text }}</span>
-                    <button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
-                </div>
+                <Tagpopup v-if="showTag" :tags="tags" :tagbar="true" :tagpopup="false" @delete-tag="deleteTags"/>
             </div>
         </div>
         
