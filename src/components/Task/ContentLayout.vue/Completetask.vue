@@ -47,7 +47,6 @@ function onDragEnd() {
                 </template>
             </draggable>
         </div>
-        <div v-if="props.completedTasks.length === 0"><Emptytask :emptytask="emptytask" :empty="'No tasks completed yet'" :emptydis="'keep it up'"></Emptytask></div>
     </div>
 </template>
 <style>

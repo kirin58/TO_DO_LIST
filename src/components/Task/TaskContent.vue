@@ -41,6 +41,8 @@ const pageTitle = computed(() => {
     case 'today': return 'Today'
     case 'next7': return 'Next 7 Days'
     case 'inbox': return 'Inbox'
+    case 'completed' : return 'Completed'
+    case 'trash' : return 'Trash'
     default: return ''
   }
 })
@@ -328,6 +330,14 @@ onMounted(() => {
     <!-- Complete -->
     <div v-if="completedTasks.length > 0" class="w-full h-[40%]">
       <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
+    </div>
+
+    <!-- CompletePage -->
+    <div v-if="props.mode == 'completed' || props.mode == 'trash'">
+      <div v-if="completedTasks.length > 0" class="w-full h-[82%]">
+        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
+      </div>
+      <div v-if="completedTasks.length === 0"><Emptytask ></Emptytask></div>
     </div>
     <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
       <div class="f-center justify-between" >
