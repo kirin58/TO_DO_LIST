@@ -10,6 +10,6 @@ const title = "Completed"
     <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContent :emptytask="emptytask" :title="title" :empty="'No tasks completed yet'" :emptydis="'keep it up'" mode="completed"/>
+        <TaskContent :title="title"  mode="completed" :emptytask="emptytask" :empty="'No tasks completed yet'" :emptydis="'keep it up'"/>
     </div>
 </template>

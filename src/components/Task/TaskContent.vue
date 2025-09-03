@@ -1,40 +1,38 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
-import TaskPopup from './TaskPopup.vue'
-import draggable from 'vuedraggable'
+import TaskList from './ContentLayout.vue/TaskList.vue'
 import Taskshuffle from './Taskshuffle.vue'
-import { useRoute } from 'vue-router'
+import Rightcontent from './ContentLayout.vue/Rightcontent.vue'
+import Createtask from './ContentLayout.vue/Createtask.vue'
+import CompletedTasks from './ContentLayout.vue/Completetask.vue'
+import Emptytask from './ContentLayout.vue/Emptytask.vue'
+import Trashpage from './ContentLayout.vue/Trashpage.vue'
 
-const task = ref('')
+//state
 const tasks = ref([])
 const completedTasks = ref([])
-const trashTasks = ref([])
-const showCompleted = ref(true)
-const dueDate = ref('')
+const showShuffle = ref(false)
+
+//Edit State
 const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
-const taskMenu = ref(null)
-const newTaskPriority = ref('')
-const showShuffle = ref(false)
+
+
+// Sort State
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
-const sortByNone = ref(false)
-const popupPosition = ref('bottom')
+const sortByNone = ref(true)
 
+const trashTasks = ref([])
+
+//Props
 const props = defineProps({
-  emptytask: { type: String, required: true },
-  empty: String, 
-  emptydis : String,
+  emptytask: String,
+  empty: String,
+  emptydis: String,
   title: String,
   mode: { type: String, default: 'today' }
-})
-
-const route = useRoute()
-const routeMode = computed(() => {
-  if (props.mode === 'inbox') return 'inbox'
-  if (props.mode === 'next7') return 'next7'
-  return 'today'
 })
 
 const pageTitle = computed(() => {
@@ -43,12 +41,13 @@ const pageTitle = computed(() => {
     case 'today': return 'Today'
     case 'next7': return 'Next 7 Days'
     case 'inbox': return 'Inbox'
-    case 'completed': return 'Completed'
-    case 'trash': return 'Trash'
+    case 'completed' : return 'Completed'
+    case 'trash' : return 'Trash'
     default: return ''
   }
 })
 
+//Pageshow
 const today = new Date()
 today.setHours(0,0,0,0)
 
@@ -78,75 +77,42 @@ const tasksToShow = computed(() => {
       return taskDate >= start && taskDate <= end
     })
   }
-  if (props.mode === 'trash'){
-    return trashTasks.value
-  }
 
   return []
 })
 
-const showMainBlock = computed(() => {
+function isShowDatepage() {
   return props.mode !== 'completed' && props.mode !== 'trash'
-})
+}
+
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify({
     incomplete: tasks.value,
     complete: completedTasks.value,
-    trash : trashTasks.value
+    trash: trashTasks.value
   }))
 }
 
-function sortByDateFn(a, b) {
-  if (!a.dueDate && !b.dueDate) return 0
-  if (!a.dueDate) return 1
-  if (!b.dueDate) return -1
-  return new Date(a.dueDate) - new Date(b.dueDate)
-}
-
-function sortByPriorityFn(a, b) {
-  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
-}
-
-function sortByNoneFn(a,b){
-  return 0;
-}
-
 function fetchTasks() {
-  const stored = JSON.parse(localStorage.getItem('tasks') || '{}')
-  tasks.value = stored.incomplete || []
-  completedTasks.value = stored.complete || []
-  trashTasks.value = stored.trash || []
-
-  if (sortByDate.value) {
-    tasks.value.sort(sortByDateFn)
-    completedTasks.value.sort(sortByDateFn)
-  } else if (sortByPriority.value) {
-    tasks.value.sort(sortByPriorityFn)
-    completedTasks.value.sort(sortByPriorityFn)
-  } else if (sortByNone.value) {
-    tasks.value.sort(sortByNoneFn)
-    completedTasks.value.sort(sortByNoneFn)
+  const saved = localStorage.getItem('tasks');
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    tasks.value = parsed.incomplete || [];
+    completedTasks.value = parsed.complete || [];
+    trashTasks.value = parsed.trash || [];
   }
 }
 
-onMounted(fetchTasks)
 
-function addTask() {
-  if (!task.value.trim()) return
-  tasks.value.push({
-    id: Date.now(),
-    text: task.value,
-    dueDate: dueDate.value || '',
-    completed: false,
-    priority: newTaskPriority.value || ''
-  })
-  task.value = ''
-  dueDate.value = ''
-  newTaskPriority.value = ''
-  saveTasks()
+onMounted(() => {
   fetchTasks()
+})
+
+
+function addTask(newTask) {
+  tasks.value.push(newTask)
+  saveTasks()
 }
 
 function deleteTask(taskId) {
@@ -157,24 +123,24 @@ function deleteTask(taskId) {
   tasks.value = tasks.value.filter(t => t.id !== taskId)
   completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
   saveTasks()
-  fetchTasks()
 }
 
 function edit(t) {
   editID.value = t.id
   editText.value = t.text
 }
-function editSave(task, cancel = false) {
-  if (cancel || editText.value.trim() === '') {
+function editSave(task, newText, cancel = false) {
+  if (cancel || newText.trim() === '') {
     editID.value = null
     editText.value = ''
     return
   }
-  task.text = editText.value
+  task.text = newText
   editID.value = null
   editText.value = ''
   saveTasks()
 }
+
 watch(editID, async (newvalue) => {
   if (newvalue !== null) {
     await nextTick()
@@ -189,68 +155,74 @@ function editDate(task, newDate) {
 }
 
 function completeTask(task) {
-  const updatedTask = { ...task, completed: true }
   tasks.value = tasks.value.filter(t => t.id !== task.id)
-  completedTasks.value.push(updatedTask)
-  saveTasks()
-}
-function uncompleteTask(task) {
-  const updatedTask = { ...task, completed: false }
-  completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
-  tasks.value.push(updatedTask)
-  saveTasks()
-}
-
-
-function togglePopup(id, event) {
-  taskMenu.value = taskMenu.value === id ? null : id
-  if (event) {
-    const top = event.target.getBoundingClientRect().top
-    const screenHeight = window.innerHeight
-    popupPosition.value = top < screenHeight / 2 ? 'bottom' : 'top'
+  if (!completedTasks.value.find(t => t.id === task.id)) {
+    completedTasks.value.push(task)
   }
+  saveTasks()  
 }
-const closePopup = () => { taskMenu.value = null }
+
+function uncompleteTask(task) {
+  completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
+  if (!tasks.value.find(t => t.id === task.id)) {
+    tasks.value.push(task)
+  }
+
+  tasks.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return 0
+  })
+
+  saveTasks()
+}
+
+function sortByDateFn(a, b) {
+  if (!a.dueDate && !b.dueDate) return 0
+  if (!a.dueDate) return 1
+  if (!b.dueDate) return -1
+  return new Date(a.dueDate) - new Date(b.dueDate)
+}
+
+function sortByPriorityFn(a, b) {
+  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+}
 
 function toggleShuffle() {
   showShuffle.value = !showShuffle.value
 }
 
 function handleSelectType(type) {
-  sortByDate.value = false
-  sortByPriority.value = false
-  sortByNone.value = false
+  sortByDate.value = type === 'Date'
+  sortByPriority.value = type === 'Priority'
+  sortByNone.value = type === 'None'
 
-  if (type === 'Date') sortByDate.value = true
-  if (type === 'Priority') sortByPriority.value = true
-  if (type === 'None') sortByNone.value = true
+  let sorted = [...tasksForDraggable.value]
 
-  fetchTasks()
+  if (sortByDate.value) sorted.sort(sortByDateFn)
+  else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
 }
 
-function flagClass(priority) {
-  switch (priority) {
-    case 'red': return 'bx bx-flag text-red-500 text-xl'
-    case 'yellow': return 'bx bx-flag text-yellow-300 text-xl'
-    case 'sky': return 'bx bx-flag text-sky-500 text-xl'
-    case 'green': return 'bx bx-flag text-green-400 text-xl'
-    default: return ''
-  }
-}
+
 function setPriority(task, color) {
   task.priority = color
   saveTasks()
   fetchTasks()
 }
+
 function togglePin(task) {
-  task.pinned = !task.pinned
-  tasks.value.sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return 0
-  })
-  saveTasks()
+  const index = tasks.value.findIndex(t => t.id === task.id);
+  if (index !== -1) {
+    tasks.value[index] = { ...tasks.value[index], pinned: !tasks.value[index].pinned };
+    tasks.value.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1;
+      if (!a.pinned && b.pinned) return 1;
+      return 0;
+    });
+  }
 }
+
 
 const selectTrash = ref(false)
 
@@ -282,13 +254,50 @@ function deleteForever() {
   saveTasks()
 }
 
-const lists = ref([])
+//mode
 
-function updateLists(updated) {
-  lists.value = updated
-  localStorage.setItem('myLists', JSON.stringify(lists.value))
+function isTaskInMode(task) {
+  if (props.mode === 'inbox') return true;
+  if (props.mode === 'today') {
+    if (!task.dueDate) return false;
+    return new Date(task.dueDate).toDateString() === today.toDateString();
+  }
+  if (props.mode === 'next7') {
+    const start = new Date(today);
+    start.setDate(today.getDate() + 1);
+    const end = new Date(today);
+    end.setDate(today.getDate() + 8);
+    if (!task.dueDate) return false;
+    const taskDate = new Date(task.dueDate);
+    return taskDate >= start && taskDate <= end;
+  }
+  return false;
 }
 
+const tasksForMode = computed(() => tasks.value.filter(t => isTaskInMode(t)))
+
+const tasksForDraggableMutable = computed({
+  get() {
+    let result = tasks.value.filter(t => isTaskInMode(t))
+    if (sortByDate.value) result.sort(sortByDateFn)
+    else if (sortByPriority.value) result.sort(sortByPriorityFn)
+    return result
+  },
+  set(newVal) {
+    const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
+    tasks.value = [...newVal, ...otherTasks]
+    saveTasks()
+  }
+})
+
+const sortedTasks = computed(() => {
+  let result = [...tasksForDraggable.value]
+  if (sortByDate.value) result.sort(sortByDateFn)
+  else if (sortByPriority.value) result.sort(sortByPriorityFn)
+  return result
+})
+
+const lists = ref([])
 onMounted(() => {
   const savedLists = localStorage.getItem('myLists')
   if (savedLists) lists.value = JSON.parse(savedLists)
@@ -296,109 +305,61 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-[57%] h-screen">
-    <div class="flex flex-col p-6 ">
-      <div class="f-center justify-between p-2 mb-2 ">
+  <div class="w-[57%] h-screen pl-5">
+    <div class="flex flex-col p-6 "
+    :class="props.mode == 'completed' || props.mode == 'trash' ? 'h-[12%]' : 'h-[16%]'">
+      <div class="flex items-center justify-between p-2 mb-2 ">
         <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
-        <div v-if="showMainBlock" class="text-stone-400 text-2xl">
+        <div v-if="isShowDatepage()" class="text-stone-400 text-2xl">
           <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
-      <div v-if="showMainBlock " class="f-center justify-between bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="bg-transparent text-slate-500 outline-none"/>
-        <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+      <!-- Create Task -->
+      <div v-if="isShowDatepage()">
+        <Createtask @add-task="addTask"></Createtask>
       </div>
     </div>
-    <div v-if="showMainBlock " class="w-full h-3/6 overflow-y-auto pl-5 pr-14">
-      <div v-if="tasksToShow.length" >
-        <draggable :list="tasksToShow" item-key="id" class="space-y-2 " handle=".drag-handle"   :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
-          <template #item="{ element: t }">
-            <div class="w-full f-center">
-              <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
-              <button @click="completeTask(t)"><i class='bx bx-checkbox checkbox'></i></button>
-              <div class="task">
-                <div class="flex items-center gap-4 ">
-                  <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
-                  <span v-if="editID !== t.id" @click="edit(t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
-                  <input v-else v-model="editText" class="w-full bg-transparent outline-none border-none focus:ring-0" @keyup.enter="editSave(t)" @blur="editSave(t)" ref="editInput"/>
-                </div>
-                <div v-if ="t.dueDate && !isNaN(new Date(t.dueDate).getTime()) " class="w-full flex justify-end pr-4" >
-                  {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}</div>
-                <i v-if="t.priority" :class="flagClass(t.priority)"></i>
-              </div>
-              <div class="relative">
-                <button @click="(e) => togglePopup(t.id,e)">
-                  <i class='bx bx-dots-horizontal-rounded text-2xl text-zinc-300 ml-3'></i>
-                </button>
-                <div v-if="taskMenu === t.id" @click.self="closePopup" class="absolute z-50 right-12" :class="[popupPosition === 'top' ? 
-                'bottom-full mb-2' : 'top-full mt-2' ,'right-0']">
-                  <TaskPopup v-model="t.dueDate" @update:modelValue="(newDate) => editDate(t,newDate)"  @pin-task="togglePin(t)" 
-                    @set-priority="(color) => setPriority(t, color)" @delete="deleteTask(t.id)" :lists="lists"  @update-lists="lists = $event"/>
-                </div>
-              </div>
-            </div>
-          </template>
-        </draggable>
-      </div>
-      <div v-else class="flex flex-col text-center items-center justify-center w-full h-full">
-            <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
-            <h1 class="font-semibold text-stone-500">{{empty}}</h1>
-            <p class="text-stone-400">{{ emptydis }}</p>
-      </div>
-    </div>
-    <div v-if="props.mode !== 'trash'" class="h-2/6 pl-5 overflow-y-auto">
-      <div class="f-center" @click="showCompleted = !showCompleted">
-        <i :class="showCompleted ? 'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl'"></i>
-        <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ completedTasks.length }})</h1>
-      </div>
-      <div v-show="showCompleted" class="space-y-2">
-        <draggable v-model="completedTasks" item-key="id" class="space-y-2" handle=".drag-handle"   
-          :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen">
-          <template #item="{ element: t }">
-            <div :key="t.id" class="f-center">
-              <button class="drag-handle icon-btn">
-                <i class='bx bx-menu text-2xl'></i>
-              </button>
-              <button @click="uncompleteTask(t)">
-                <i class='bx bx-checkbox-checked checkbox'></i>
-              </button>
-              <span class="line-through text-lg">{{ t.text }}</span>
-            </div>
-          </template>
-        </draggable>
-      </div>
-      <div v-if="props.mode == 'completed' && completedTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-5/6">
-        <img :src="emptytask" alt="Empty Inbox" class="w-64 h-auto object-contain opacity-50"/>
-        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
-        <p class="text-stone-400">{{ emptydis }}</p>
-      </div>
-    </div>
-    <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
-      <div class="f-center justify-between" >
-        <div class="f-center gap-2">
-          <button @click="toggleselectTrash"><i :class="selectTrash ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
-          <p class="text-lg text-stone-500">All</p>
+    <!-- DatePage -->
+    <div v-if="isShowDatepage()" class="h-[84%]">
+      <div class="w-full overflow-y-auto  pr-14"
+      :class="completedTasks.length > 0 ? 'h-[50%]' : 'h-[100%]'">
+        <!-- TaskLists -->
+        <div v-show="tasksForDraggableMutable.length > 0" >
+          <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
+          :editID="editID" :editText="editText" :lists="lists"
+          @update:tasks="tasks = $event"
+          @complete-task="completeTask" @edit-task="edit"
+          @edit-save="editSave" @edit-date="editDate"
+          @pin-task="togglePin" @set-priority="setPriority" @delete-task="deleteTask"/>
         </div>
-        <div class="f-center gap-2">
-          <button @click="restoreTasks"><i class='bx bx-undo text-3xl text-zinc-400'></i> </button>
-          <button @click="deleteForever"><i class='bx  bx-trash text-2xl text-zinc-400'  ></i> </button>
-        </div>
+        <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
       </div>
-      <div v-for="t in trashTasks" :key="t.id" class="f-center">
-        <button @click="t.isDeleted = !t.isDeleted"><i :class="t.isDeleted ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
-        <span class="text-lg text-stone-500">{{ t.text }}</span>
+      <!-- Complete -->
+      <div v-if="completedTasks.length > 0" class="w-full h-[50%]">
+        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
       </div>
-      <div v-if="trashTasks.length === 0" class="flex flex-col text-center items-center justify-center w-full h-full">
-        <img :src="emptytask" alt="Empty Trash" class="w-64 h-auto object-contain opacity-50"/>
-        <h1 class="font-semibold text-stone-500">{{empty}}</h1>
-        <p class="text-stone-400">{{ emptydis }}</p>
+    </div>
+    
+    <!-- CompletePage -->
+    <div v-if="props.mode == 'completed'" class="w-full h-[84%]">
+      <div v-if="completedTasks.length > 0" class="h-full pl-6">
+        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
       </div>
+      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
+    </div>
+
+    <!-- TrashPage -->
+    <div v-if="props.mode == 'trash'" class="w-full h-[84%]">
+      <div v-if="trashTasks.length > 0" class="h-full pl-6">
+        <Trashpage :trashTasks="trashTasks" :selectTrash="selectTrash" @toggleselectTrash="toggleselectTrash" 
+        @restoreTasks="restoreTasks" @deleteForever="deleteForever"/>
+      </div>
+      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
     </div>
   </div>
   <div class="h-screen flex">
-    <div class="h-screen w-px bg-zinc-300 "></div>
-    <img src="/src/assets/RightBG.png" class="h-screen">
+    <Rightcontent></Rightcontent>
   </div>
 </template>
 <style>
@@ -413,9 +374,6 @@ onMounted(() => {
 }
 .checkbox{
   @apply text-4xl text-zinc-300;
-}
-.f-center{
-  @apply flex items-center;
 }
 .icon-btn {
   @apply flex items-center text-zinc-300 cursor-pointer;
