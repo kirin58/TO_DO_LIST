@@ -60,10 +60,9 @@ onMounted(() => {
     <template v-if="props.tagbar">
         <div v-for="t in props.tags" :key="t.id" class="tagstyle ">
             <template v-if="editingId === t.id">
-                <input :id="`input-${t.id}`" v-model="editText" 
-                    @keyup.enter="saveEdit(t)" 
-                    @blur="saveEdit(t)"
-                    class="bg-transparent border-b border-gray-400 focus:outline-none"/>
+                <input :id="`input-${t.id}`" v-model="editText"
+                @keyup.enter="saveEdit(t)" @blur="saveEdit(t)"
+                class="bg-transparent border-b border-gray-400 focus:outline-none"/>
             </template>
             <template v-else>    
                 <span @click="startEdit(t)" class="cursor-text select-none">{{ t.text }}</span>

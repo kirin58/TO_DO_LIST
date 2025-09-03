@@ -41,9 +41,9 @@ function handleAddTag(newTag){
     localStorage.setItem('myTags', JSON.stringify(tags.value))
 }
 function updateTag(updatedtag) {
-  const index = lists.value.findIndex(l => l.id === updatedtag.id)
+  const index = tags.value.findIndex(t => t.id === updatedtag.id)
   if (index !== -1) {
-    lists.value[index] = updatedtag
+    tags.value[index] = updatedtag
     localStorage.setItem('myTags', JSON.stringify(tags.value))
   }
 }

@@ -30,10 +30,6 @@ function startEdit(list) {
     if (input) input.focus()
   })
 
-    nextTick(() => {
-    const input = document.getElementById(`input-${list.id}`)
-    if (input) input.focus()
-  })
 }
 
 function saveEdit(list) {
