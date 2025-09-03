@@ -2,6 +2,7 @@
 import NavBar from '@/components/NavBar.vue';
 import TaskBar from '@/components/Task/TaskBar.vue';
 import TaskContent from '@/components/Task/TaskContent.vue';
+import emptytask from '@/assets/NoCompleted.png';
 
 const title = "Completed"
 </script>

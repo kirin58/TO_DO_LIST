@@ -2,11 +2,11 @@
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import TaskList from './ContentLayout.vue/TaskList.vue'
 import Taskshuffle from './Taskshuffle.vue'
-import { useRoute } from 'vue-router'
 import Rightcontent from './ContentLayout.vue/Rightcontent.vue'
 import Createtask from './ContentLayout.vue/Createtask.vue'
 import CompletedTasks from './ContentLayout.vue/Completetask.vue'
 import Emptytask from './ContentLayout.vue/Emptytask.vue'
+import Trashpage from './ContentLayout.vue/Trashpage.vue'
 
 //state
 const tasks = ref([])
@@ -80,6 +80,11 @@ const tasksToShow = computed(() => {
 
   return []
 })
+
+function isShowDatepage() {
+  return props.mode !== 'completed' && props.mode !== 'trash'
+}
+
 
 function saveTasks() {
   localStorage.setItem('tasks', JSON.stringify({
@@ -301,59 +306,56 @@ onMounted(() => {
 
 <template>
   <div class="w-[57%] h-screen pl-5">
-    <div class="h-[18%] flex flex-col p-6 ">
-      <div class="f-center justify-between p-2 mb-2 ">
+    <div class="flex flex-col p-6 "
+    :class="props.mode == 'completed' || props.mode == 'trash' ? 'h-[12%]' : 'h-[16%]'">
+      <div class="flex items-center justify-between p-2 mb-2 ">
         <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
-        <div class="text-stone-400 text-2xl">
+        <div v-if="isShowDatepage()" class="text-stone-400 text-2xl">
           <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
         </div>
       </div>
       <!-- Create Task -->
-      <div>
+      <div v-if="isShowDatepage()">
         <Createtask @add-task="addTask"></Createtask>
       </div>
     </div>
-    <div class="w-full overflow-y-auto  pr-14"
-    :class="completedTasks.length > 0 ? 'h-[42%]' : 'h-[82%]'">
-      <!-- TaskLists -->
-      <div v-show="tasksForDraggableMutable.length > 0" >
-        <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
-        :editID="editID" :editText="editText" :lists="lists"
-        @update:tasks="tasks = $event"
-        @complete-task="completeTask" @edit-task="edit"
-        @edit-save="editSave" @edit-date="editDate"
-        @pin-task="togglePin" @set-priority="setPriority" @delete-task="deleteTask"/>
+    <!-- DatePage -->
+    <div v-if="isShowDatepage()" class="h-[84%]">
+      <div class="w-full overflow-y-auto  pr-14"
+      :class="completedTasks.length > 0 ? 'h-[50%]' : 'h-[100%]'">
+        <!-- TaskLists -->
+        <div v-show="tasksForDraggableMutable.length > 0" >
+          <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
+          :editID="editID" :editText="editText" :lists="lists"
+          @update:tasks="tasks = $event"
+          @complete-task="completeTask" @edit-task="edit"
+          @edit-save="editSave" @edit-date="editDate"
+          @pin-task="togglePin" @set-priority="setPriority" @delete-task="deleteTask"/>
+        </div>
+        <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
       </div>
-      <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
-    </div>
-    <!-- Complete -->
-    <div v-if="completedTasks.length > 0" class="w-full h-[40%]">
-      <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
-    </div>
-
-    <!-- CompletePage -->
-    <div v-if="props.mode == 'completed' || props.mode == 'trash'">
-      <div v-if="completedTasks.length > 0" class="w-full h-[82%]">
+      <!-- Complete -->
+      <div v-if="completedTasks.length > 0" class="w-full h-[50%]">
         <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
       </div>
-      <div v-if="completedTasks.length === 0"><Emptytask ></Emptytask></div>
     </div>
-    <div v-if="props.mode == 'trash'" class="flex flex-col space-y-2 w-full  p-5">
-      <div class="f-center justify-between" >
-        <div class="f-center gap-2">
-          <button @click="toggleselectTrash"><i :class="selectTrash ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
-          <p class="text-lg text-stone-500">All</p>
-        </div>
-        <div class="f-center gap-2">
-          <button @click="restoreTasks"><i class='bx bx-undo text-3xl text-zinc-400'></i> </button>
-          <button @click="deleteForever"><i class='bx  bx-trash text-2xl text-zinc-400'  ></i> </button>
-        </div>
+    
+    <!-- CompletePage -->
+    <div v-if="props.mode == 'completed'" class="w-full h-[84%]">
+      <div v-if="completedTasks.length > 0" class="h-full pl-6">
+        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
       </div>
-      <div v-for="t in trashTasks" :key="t.id" class="f-center">
-        <button @click="t.isDeleted = !t.isDeleted"><i :class="t.isDeleted ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i></button>
-        <span class="text-lg text-stone-500">{{ t.text }}</span>
+      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
+    </div>
+
+    <!-- TrashPage -->
+    <div v-if="props.mode == 'trash'" class="w-full h-[84%]">
+      <div v-if="trashTasks.length > 0" class="h-full pl-6">
+        <Trashpage :trashTasks="trashTasks" :selectTrash="selectTrash" @toggleselectTrash="toggleselectTrash" 
+        @restoreTasks="restoreTasks" @deleteForever="deleteForever"/>
       </div>
+      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
     </div>
   </div>
   <div class="h-screen flex">
@@ -372,10 +374,6 @@ onMounted(() => {
 }
 .checkbox{
   @apply text-4xl text-zinc-300;
-}
-/* เดี๋ยวลบ */
-.f-center{
-  @apply flex items-center;
 }
 .icon-btn {
   @apply flex items-center text-zinc-300 cursor-pointer;

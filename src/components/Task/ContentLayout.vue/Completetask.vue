@@ -2,7 +2,7 @@
 import { ref, defineEmits, defineProps,watch } from 'vue'
 import draggable from 'vuedraggable'
 import Emptytask from './Emptytask.vue'
-import emptytask from '@/assets/NoCompleted.png';
+
 //props
 const props = defineProps({
     completedTasks: {
