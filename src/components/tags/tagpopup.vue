@@ -7,7 +7,7 @@ const props = defineProps({
     tagbar: {type: Boolean, default: true}
 })
 
-const emit = defineEmits(['delete-tag','update-tag'])
+const emit = defineEmits(['delete-tag','update-tag','select'])
 
 const localtags = ref([])
 const editingId = ref(null)
@@ -58,7 +58,7 @@ onMounted(() => {
 
 <template>
     <template v-if="props.tagbar">
-        <div v-for="t in props.tags" :key="t.id" class="tagstyle ">
+        <div v-for="t in props.tags" :key="t.id" class="tagstyle justify-between">
             <template v-if="editingId === t.id">
                 <input :id="`input-${t.id}`" v-model="editText"
                 @keyup.enter="saveEdit(t)" @blur="saveEdit(t)"
@@ -71,13 +71,14 @@ onMounted(() => {
         </div>
     </template>
     <template v-if="props.tagpopup">
-        <div v-for="t in localtags" :key="t.id" class="tagstyle">
-            <span class="mb-2">{{ t.text }}</span>
+        <div v-for="t in localtags" :key="t.id" class="tagstyle cursor-pointer" @click="emit('select',t)">
+            <i class='bx bx-menu text-2xl'></i>
+            <span>{{ t.text }}</span>
         </div>
     </template>
 </template>
 <style scoped>
 .tagstyle {
-    @apply flex items-center gap-2 m-2  px-1 text-base justify-between;
+    @apply flex items-center gap-2 m-2  px-1 text-base;
 }
 </style>

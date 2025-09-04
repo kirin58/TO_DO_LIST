@@ -60,7 +60,7 @@ onMounted(() => {
 
 <template>
     <template v-if="props.Listbar">
-        <div v-for="l in props.lists" :key="l.id" class="liststyle">
+        <div v-for="l in props.lists" :key="l.id" class="liststyle justify-between">
             <template v-if="editingId === l.id">
                 <input :id="`input-${l.id}`" v-model="editText" 
                     @keyup.enter="saveEdit(l)" @blur="saveEdit(l)"
@@ -74,13 +74,14 @@ onMounted(() => {
     </template>
     <template v-if="props.Listpopup">
         <div v-for="l in props.lists" :key="l.id" class="liststyle">
-            <span class="mb-2">{{ l.text }}</span>
+          <i class='bx bx-menu text-2xl'></i>
+          <span>{{ l.text }}</span>
         </div>
     </template>
 </template>
 
 <style scoped>
 .liststyle {
-    @apply flex items-center gap-2 m-2  px-1 text-base justify-between;
+    @apply flex items-center text-center gap-2 m-2  px-1 text-base ;
 }
 </style>

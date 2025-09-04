@@ -8,7 +8,7 @@ const props = defineProps({
   editID: Number,
   editText: String,
   lists: Array,
-  tags: Array
+  tags: { type: Array, default: () => [] } 
 })
 
 const emit = defineEmits([
@@ -71,17 +71,22 @@ watch(() => props.editText, (val) => {
         <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
         <button @click="$emit('complete-task', t)"><i class='bx bx-checkbox checkbox'></i></button>
         <div class="task">
-          <div class="flex items-center gap-4">
+          <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
             <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
             <input v-else v-model="localEditText" class="w-full bg-transparent outline-none border-none focus:ring-0"
                 @keyup.enter="$emit('edit-save', t, localEditText)"
                 @blur="$emit('edit-save', t, localEditText)" ref="editInput"/>
           </div>
-          <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="w-full flex justify-end pr-4">
-            {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
+          <div class="max-w-[50%] flex items-center gap-3">
+              <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="flex items-center">
+                {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
+              </div>
+              <span v-if="tags && t.tagId" class="max-w-[50%] bg-teal-300 p-1 rounded-lg text-lg break-words">
+                  {{ tags.find(tag => String(tag.id) === String(t.tagId))?.text || 'Unknown Tag' }}
+              </span>
+              <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
-          <i v-if="t.priority" :class="flagClass(t.priority)"></i>
         </div>
         <div class="relative">
           <button @click="togglePopup(t.id, $event)">
@@ -91,10 +96,28 @@ watch(() => props.editText, (val) => {
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
                 <TaskPopup v-model="t.dueDate"@update:modelValue="$emit('edit-date', t, $event)"
                 @pin-task="$emit('pin-task', t)"@set-priority="$emit('set-priority', t, $event)"
-                @delete="$emit('delete-task', t.id)":lists="lists" :tags="tags"/>
+                @delete="$emit('delete-task', t.id)":lists="lists" :tags="tags" 
+                @select-tag="(tag) => $emit('select-tag',t,tag)"/>
           </div>
         </div>
       </div>
     </template>
   </draggable>
 </template>
+<style>
+.drag-chosen  {
+   @apply  opacity-100 scale-100 z-50 shadow-2xl ;
+}
+.drag-ghost {
+   @apply opacity-0 pointer-events-none overflow-hidden;
+}
+.task{
+  @apply w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-lg focus-within:border-orange-300 ;
+}
+.checkbox{
+  @apply text-4xl text-zinc-300;
+}
+.icon-btn {
+  @apply flex items-center text-zinc-300 cursor-pointer;
+}
+</style>

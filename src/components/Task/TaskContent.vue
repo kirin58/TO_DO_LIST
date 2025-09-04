@@ -12,6 +12,7 @@ import Trashpage from './ContentLayout.vue/Trashpage.vue'
 const tasks = ref([])
 const completedTasks = ref([])
 const showShuffle = ref(false)
+const tags = ref([])
 
 //Edit State
 const editID = ref(null)
@@ -25,6 +26,7 @@ const sortByPriority = ref(false)
 const sortByNone = ref(true)
 
 const trashTasks = ref([])
+
 
 //Props
 const props = defineProps({
@@ -92,6 +94,7 @@ function saveTasks() {
     complete: completedTasks.value,
     trash: trashTasks.value
   }))
+  localStorage.setItem('myTags', JSON.stringify(tags.value || []))
 }
 
 function fetchTasks() {
@@ -106,6 +109,8 @@ function fetchTasks() {
 
 
 onMounted(() => {
+  const savedTags = localStorage.getItem('myTags')
+  tags.value = savedTags ? JSON.parse(savedTags) : []
   fetchTasks()
 })
 
@@ -223,6 +228,13 @@ function togglePin(task) {
   }
 }
 
+function handleSelectTag(task, tag) {
+  const taskIndex = tasks.value.findIndex(t => t.id === task.id)
+  if (taskIndex !== -1) {
+    tasks.value[taskIndex].tagId = tag.id
+    saveTasks()
+  }
+}
 
 const selectTrash = ref(false)
 
@@ -327,11 +339,10 @@ onMounted(() => {
         <!-- TaskLists -->
         <div v-show="tasksForDraggableMutable.length > 0" >
           <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
-          :editID="editID" :editText="editText" :lists="lists" :tags="tags"
-          @update:tasks="tasks = $event"
-          @complete-task="completeTask" @edit-task="edit"
-          @edit-save="editSave" @edit-date="editDate"
-          @pin-task="togglePin" @set-priority="setPriority" @delete-task="deleteTask"/>
+          :editID="editID" :editText="editText" :lists="lists" :tags="tags" @pin-task="togglePin" 
+          @update:tasks="tasks = $event" @edit-task="edit" @edit-date="editDate" @edit-save="editSave" 
+          @complete-task="completeTask" @set-priority="setPriority" @delete-task="deleteTask" 
+          @select-tag="handleSelectTag"/>
         </div>
         <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
       </div>
@@ -362,20 +373,3 @@ onMounted(() => {
     <Rightcontent></Rightcontent>
   </div>
 </template>
-<style>
-.drag-chosen  {
-   @apply  opacity-100 scale-100 z-50 shadow-2xl ;
-}
-.drag-ghost {
-   @apply opacity-0 pointer-events-none overflow-hidden;
-}
-.task{
-  @apply w-full flex justify-between p-2 border-b border-gray-300 mb-2 text-lg focus-within:border-orange-300 ;
-}
-.checkbox{
-  @apply text-4xl text-zinc-300;
-}
-.icon-btn {
-  @apply flex items-center text-zinc-300 cursor-pointer;
-}
-</style>

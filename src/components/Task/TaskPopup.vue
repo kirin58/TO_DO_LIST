@@ -1,5 +1,5 @@
 <script setup>
-import { ref ,watch} from 'vue'
+import { ref ,watch , onMounted} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Listspopup from '../Lists/Listspopup.vue'
@@ -22,9 +22,10 @@ const props = defineProps({
     isNew: { type: Boolean, default: false }
 })
 
+const tags = ref([])
 const tasksForDraggableMutable = ref([...props.tasks])
 
-const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task' ])
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task','select-tag' ])
 
 const selectDate = ref(props.modelValue || undefined)
 watch(selectDate, (newValue) => {
@@ -68,6 +69,10 @@ watch(
   },
   { immediate: true }
 )
+onMounted(() => {
+  const savedTags = localStorage.getItem('myTags')
+  tags.value = savedTags ? JSON.parse(savedTags) : []
+})
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -144,7 +149,7 @@ watch(
                 </div>
                 <i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <TagPopup v-if="showTag" :tags="internalTags" :tagbar="false" :tagpopup="true"/>
+            <TagPopup v-if="showTag" :tags="internalTags" :tagbar="false" :tagpopup="true" @select="(tag) => emit('select-tag',tag)"/>
         </div>
         <template v-if="!props.isNew">
             <div class="taskpopup_line"></div>

@@ -49,7 +49,7 @@ function updateTag(updatedtag) {
 }
 function deleteTags(id){
     tags.value = tags.value.filter(t => t.id !== id) 
-    localStorage.setItem('myTagts', JSON.stringify(tags.value))
+    localStorage.setItem('myTags', JSON.stringify(tags.value))
 }
 
 onMounted(() => {
