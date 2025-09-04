@@ -6,12 +6,9 @@
                 <button>
                     <i class='bx  bx-plus'></i> 
                 </button>
-                <button>
-                    <i class='bx  bx-dots-horizontal-rounded'></i>
-                </button>
             </div>
         </div>
-        <div class="flex justify-center mt-4 font-bold text-xl ">
+        <div class="flex justify-center mt-4 mb-20 font-bold text-xl ">
             <button
                 :class="['rounded-full px-6 py-2', mode === 'pomo' ? 'bg-orange-200 text-orange-800' : 'bg-gray-200 text-gray-500']"
                 @click="switchMode('pomo')"
@@ -23,14 +20,6 @@
                 @click="switchMode('stopwatch')"
             >
                 Stopwatch
-            </button>
-        </div>
-        <div class="justify-center flex items-center px-6 py-5 mt-4 text-xl text-stone-400 font-semibold">
-            <p>
-                Focus
-            </p>
-            <button class="ml-2 mt-1 text-2xl">
-                <i class='bx  bx-chevron-right'></i> 
             </button>
         </div>
 
@@ -86,21 +75,21 @@
                 <template v-if="!isRelaxing">
                     <button
                         v-if="!running"
-                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4 mt-10"
                         @click="startTimer"
                     >
                         {{ isPaused ? 'Continue' : 'Start' }}
                     </button>
                     <button
                         v-if="!running && (isPaused || (minutes !== inputMinutes || seconds !== 0))"
-                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition "
                         @click="endTimer"
                     >
                         End
                     </button>
                     <button
                         v-if="running"
-                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition mt-10"
                         @click="pauseTimer"
                     >
                         Pause
@@ -135,14 +124,14 @@
             <template v-else>
                 <button
                     v-if="!swRunning"
-                    class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                    class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4 mt-10"
                     @click="startStopwatch"
                 >
                     {{ swPaused ? 'Continue' : 'Start' }}
                 </button>
                 <button
                     v-if="swRunning"
-                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition mt-10"
                     @click="pauseStopwatch"
                 >
                     Pause
@@ -206,21 +195,33 @@ export default {
             if (this.running) return;
             this.running = true;
             this.isPaused = false;
-            if (!this.sessionStart){
+            
+            if (!this.sessionStart) {
                 this.sessionStart = new Date();
             }
+
+            // กำหนดเวลาตามโหมด
+            let targetMinutes = this.isRelaxing ? 5 : this.inputMinutes;
+            this.minutes = targetMinutes;
+            this.seconds = 0;
+
             this.timer = setInterval(() => {
                 if (this.seconds === 0) {
                     if (this.minutes === 0) {
                         clearInterval(this.timer);
                         this.running = false;
-                        // Emit session เมื่อจับเวลาจบเอง
                         this.emitSession();
+
                         if (this.isRelaxing) {
+                            // จบ Relax กลับไป Pomodoro
                             this.isRelaxing = false;
                             this.minutes = this.inputMinutes;
                             this.seconds = 0;
                         } else {
+                            // จบ Pomodoro เข้า Relax อัตโนมัติ
+                            this.isRelaxing = true;
+                            this.minutes = 5;
+                            this.seconds = 0;
                             this.showRelaxModal = true;
                         }
                     } else {
@@ -249,7 +250,6 @@ export default {
         emitSession() {
             if (this.sessionStart) {
                 const end = new Date();
-                // เวลาที่ผ่านไปจริง
                 const diffMs = end - this.sessionStart;
                 const usedMinutes = Math.floor(diffMs / 60000);
                 const usedSeconds = Math.floor((diffMs % 60000) / 1000);
@@ -262,7 +262,7 @@ export default {
                 };
 
                 this.sessions.push(session);
-                localStorage.setItem("sessions",JSON.stringify(this.sessions));
+                localStorage.setItem("sessions", JSON.stringify(this.sessions));
 
                 this.$emit('pomo-ended', session);
                 this.sessionStart = null;
