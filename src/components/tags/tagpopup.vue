@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import {ref,onMounted , nextTick, watch} from 'vue'
 
 const props = defineProps({ 
