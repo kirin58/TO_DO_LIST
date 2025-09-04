@@ -3,28 +3,28 @@ import { ref ,watch} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import Listspopup from '../Lists/Listspopup.vue'
+import TagPopup from '../tags/tagpopup.vue'
 
 const props = defineProps({
     lists: {
     type: Array,
     default: () => []
-  },
+    },
     tags: {
-        type: Array,
-        default: () => []
+    type: Array,
+    default: () => []
     },
     tasks: {
     type: Array,
     default: () => []
-  },
-  modelValue: String,
-  isNew: { type: Boolean, default: false }
+    },
+    modelValue: String,
+    isNew: { type: Boolean, default: false }
 })
 
 const tasksForDraggableMutable = ref([...props.tasks])
 
-const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task' 
-    ,'update-lists','delete-list'])
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task' ])
 
 const selectDate = ref(props.modelValue || undefined)
 watch(selectDate, (newValue) => {
@@ -39,14 +39,11 @@ const setDateOffset = (days) => {
     emit('update:modelValue', iso)
 }
 
-function setPriority(color) {
-  emit('set-priority', color)
-}
-
 const showList = ref(false)
-
 const internalLists = ref([...props.lists])
 
+const showTag = ref(false)
+const internalTags = ref([...props.tags])
 
 watch(
   () => props.tasks,
@@ -64,10 +61,13 @@ watch(
   { immediate: true }
 )
 
-function handleDeleteList(id) {
-  internalLists.value = internalLists.value.filter(l => l.id !== id)
-  emit('update-lists', internalLists.value)
-}
+watch(
+  () => props.tags,
+  (newTags) => {
+    internalTags.value = Array.isArray(newTags) ? [...newTags] : []
+  },
+  { immediate: true }
+)
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -134,7 +134,7 @@ function handleDeleteList(id) {
                 </div>
                 <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <Listspopup v-if="showList && internalLists.length > 0" :lists="internalLists" :Listbar="false" :Listpopup="true" @delete-list="handleDeleteList"/>
+            <Listspopup v-if="showList && internalLists.length > 0" :lists="internalLists" :Listbar="false" :Listpopup="true"/>
         </div>
         <div>
             <div class="taskpopup_func justify-between">
@@ -142,8 +142,9 @@ function handleDeleteList(id) {
                     <button>#</button>
                     <p>Tags</p>
                 </div>
-                <i @click="showTag = !showTag" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
+                <i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
+            <TagPopup v-if="showTag" :tags="internalTags" :tagbar="false" :tagpopup="true"/>
         </div>
         <template v-if="!props.isNew">
             <div class="taskpopup_line"></div>

@@ -71,7 +71,7 @@ onMounted(() => {
         </div>
     </template>
     <template v-if="props.tagpopup">
-        <div v-for="t in props.tags" :key="t.id" class="tagstyle">
+        <div v-for="t in localtags" :key="t.id" class="tagstyle">
             <span class="mb-2">{{ t.text }}</span>
         </div>
     </template>

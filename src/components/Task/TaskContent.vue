@@ -32,7 +32,7 @@ const props = defineProps({
   empty: String,
   emptydis: String,
   title: String,
-  mode: { type: String, default: 'today' }
+  mode: { type: String, default: 'today' },
 })
 
 const pageTitle = computed(() => {
@@ -327,7 +327,7 @@ onMounted(() => {
         <!-- TaskLists -->
         <div v-show="tasksForDraggableMutable.length > 0" >
           <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
-          :editID="editID" :editText="editText" :lists="lists"
+          :editID="editID" :editText="editText" :lists="lists" :tags="tags"
           @update:tasks="tasks = $event"
           @complete-task="completeTask" @edit-task="edit"
           @edit-save="editSave" @edit-date="editDate"

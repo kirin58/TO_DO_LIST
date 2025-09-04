@@ -7,7 +7,8 @@ const props = defineProps({
   tasks: Array,
   editID: Number,
   editText: String,
-  lists: Array
+  lists: Array,
+  tags: Array
 })
 
 const emit = defineEmits([
@@ -90,7 +91,7 @@ watch(() => props.editText, (val) => {
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
                 <TaskPopup v-model="t.dueDate"@update:modelValue="$emit('edit-date', t, $event)"
                 @pin-task="$emit('pin-task', t)"@set-priority="$emit('set-priority', t, $event)"
-                @delete="$emit('delete-task', t.id)":lists="props.lists" :tags="props.tags"/>
+                @delete="$emit('delete-task', t.id)":lists="lists" :tags="tags"/>
           </div>
         </div>
       </div>
