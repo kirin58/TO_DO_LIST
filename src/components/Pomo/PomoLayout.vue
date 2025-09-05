@@ -3,7 +3,8 @@
         <div class="flex items-center justify-between px-6 py-8 h-28">
             <div class="font-semibold text-3xl text-stone-800">Pomodoro</div>
             <div class="flex space-x-4 text-2xl text-stone-400">
-                <button>
+                <!-- กด + แล้วเปิด popup -->
+                <button @click="showAddTimer = true">
                     <i class='bx  bx-plus'></i> 
                 </button>
             </div>
@@ -158,10 +159,20 @@
     <div>
         <div class="bg-zinc-300 h-screen w-px"></div>
     </div>
+
+    <!-- Popup Add Timer -->
+    <AddTimerPopup 
+        v-if="showAddTimer" 
+        @close="showAddTimer = false" 
+        @save="handleSave" 
+    />
 </template>
 
 <script>
+import AddTimerPopup from './Pomoaddtime.vue'  // ✅ import ไฟล์ 2
+
 export default {
+    components: { AddTimerPopup },
     emits: ['pomoEnded'], // ✅ ประกาศ event
     data() {
         return {
@@ -184,7 +195,10 @@ export default {
             swRunning: false,
             swPaused: false,
 
-            sessions: JSON.parse(localStorage.getItem("sessions") || "[]")
+            sessions: JSON.parse(localStorage.getItem("sessions") || "[]"),
+
+            // ✅ state คุม popup
+            showAddTimer: false,
         };
     },
     methods: {
@@ -214,12 +228,10 @@ export default {
                         this.emitSession();
 
                         if (this.isRelaxing) {
-                            // จบ Relax กลับไป Pomodoro
                             this.isRelaxing = false;
                             this.minutes = this.inputMinutes;
                             this.seconds = 0;
                         } else {
-                            // จบ Pomodoro เข้า Relax อัตโนมัติ
                             this.isRelaxing = true;
                             this.minutes = 5;
                             this.seconds = 0;
@@ -265,7 +277,7 @@ export default {
                 this.sessions.push(session);
                 localStorage.setItem("sessions", JSON.stringify(this.sessions));
 
-                this.$emit('pomoEnded', session); // ✅ แก้เป็น camelCase
+                this.$emit('pomoEnded', session);
                 this.sessionStart = null;
             }
         },
@@ -337,6 +349,17 @@ export default {
             this.swRunning = false;
             this.swPaused = false;
         },
+
+        // ✅ handle save จาก popup
+        handleSave(data) {
+            console.log("Saved Timer:", data);
+            this.mode = data.mode;
+            if (data.mode === 'pomo' && data.minutes) {
+                this.inputMinutes = data.minutes;
+                this.minutes = data.minutes;
+                this.seconds = 0;
+            }
+        }
     },
     mounted() {
         this.minutes = 25;
