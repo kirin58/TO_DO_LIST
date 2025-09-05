@@ -162,6 +162,7 @@
 
 <script>
 export default {
+    emits: ['pomoEnded'], // ✅ ประกาศ event
     data() {
         return {
             // Pomodoro
@@ -264,7 +265,7 @@ export default {
                 this.sessions.push(session);
                 localStorage.setItem("sessions", JSON.stringify(this.sessions));
 
-                this.$emit('pomo-ended', session);
+                this.$emit('pomoEnded', session); // ✅ แก้เป็น camelCase
                 this.sessionStart = null;
             }
         },
