@@ -82,8 +82,8 @@ watch(() => props.editText, (val) => {
               <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="flex items-center">
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
-              <span v-if="tags && t.tagId" class="max-w-[50%] bg-teal-300 p-1 rounded-lg text-lg break-words">
-                  {{ tags.find(tag => String(tag.id) === String(t.tagId))?.text || 'Unknown Tag' }}
+              <span v-if="tags && t.tagId" class=" bg-teal-300 p-1 rounded-lg text-lg">
+                  {{ tags.find(tag => String(tag.id) === String(t.tagId))?.text}}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
