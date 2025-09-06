@@ -2,9 +2,8 @@
 import NavBar from '@/components/NavBar.vue';
 import PomoLayout from '@/components/Pomo/PomoLayout.vue';
 import Pomoright from '@/components/Pomo/Pomoright.vue';
-import Pomoaddtime from '@/components/Pomo/Pomoaddtime.vue';
 export default {
-  components: { PomoLayout, Pomoright ,NavBar , Pomoaddtime },
+  components: { PomoLayout, Pomoright ,NavBar},
   data() {
     return {
       sessions: JSON.parse(localStorage.getItem("sessions") || "[]")
@@ -23,7 +22,6 @@ export default {
         <NavBar />
         <PomoLayout @pomo-ended="addSession" />
         <Pomoright :pomoSessions="sessions" />
-        <Pomoaddtime />
     </body>
 
 </template>

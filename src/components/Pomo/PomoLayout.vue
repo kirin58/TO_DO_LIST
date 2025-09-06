@@ -8,6 +8,12 @@
                     <i class='bx  bx-plus'></i> 
                 </button>
             </div>
+                <!-- Popup Add Timer -->
+            <AddTimerPopup 
+                v-if="showAddTimer" 
+                @close="closeAddTimer"  
+                @save="handleSave" 
+            />
         </div>
         <div class="flex justify-center mt-4 mb-20 font-bold text-xl ">
             <button
@@ -159,13 +165,6 @@
     <div>
         <div class="bg-zinc-300 h-screen w-px"></div>
     </div>
-
-    <!-- Popup Add Timer -->
-    <AddTimerPopup 
-        v-if="showAddTimer" 
-        @close="showAddTimer = false" 
-        @save="handleSave" 
-    />
 </template>
 
 <script>
@@ -349,16 +348,19 @@ export default {
             this.swRunning = false;
             this.swPaused = false;
         },
-
-        // ✅ handle save จาก popup
+        closeAddTimer() {
+            console.log("CLOSE ADD TIMER CALLED");
+            this.showAddTimer = false
+        },
         handleSave(data) {
             console.log("Saved Timer:", data);
             this.mode = data.mode;
             if (data.mode === 'pomo' && data.minutes) {
-                this.inputMinutes = data.minutes;
-                this.minutes = data.minutes;
-                this.seconds = 0;
+            this.inputMinutes = data.minutes;
+            this.minutes = data.minutes;
+            this.seconds = 0;
             }
+            this.showAddTimer = false
         }
     },
     mounted() {
@@ -366,4 +368,6 @@ export default {
         this.seconds = 0;
     }
 };
+
+
 </script>

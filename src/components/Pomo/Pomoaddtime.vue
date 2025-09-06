@@ -5,11 +5,11 @@
     @click.self="$emit('close')"
   >
     <!-- Popup -->
-    <div class="bg-white rounded-lg shadow-lg p-6 min-w-[320px] relative">
+    <div class="bg-white rounded-lg shadow-lg p-6 min-w-[320px] relative z-50">
       <!-- ปุ่ม X -->
       <button
-        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg"
-        @click="$emit('close')"
+        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg z-50"
+        @click="handleClose"
       >
         &times;
       </button>
@@ -83,7 +83,7 @@
   </div>
 </template>
 
-<script>
+<script >
 export default {
   emits: ['close', 'save'],
   data() {
@@ -94,6 +94,10 @@ export default {
     };
   },
   methods: {
+    handleClose() {
+      console.log('CLICK CLOSE');
+      this.$emit('close');
+  },
     save() {
       this.$emit('save', {
         title: this.title,
