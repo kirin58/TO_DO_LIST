@@ -63,13 +63,16 @@ onMounted(() => {
         <div v-for="l in props.lists" :key="l.id" class="liststyle justify-between">
             <template v-if="editingId === l.id">
                 <input :id="`input-${l.id}`" v-model="editText" 
-                    @keyup.enter="saveEdit(l)" @blur="saveEdit(l)"
-                    class="bg-transparent border-b border-gray-400 focus:outline-none"/>
+                  @keyup.enter="saveEdit(l)" @blur="saveEdit(l)"
+                  class="bg-transparent border-b border-gray-400 focus:outline-none"
+                />
             </template>
             <template v-else>
                 <span @click="startEdit(l)" class="cursor-text select-none">{{ l.text }}</span>
             </template>
-            <button @click="deleteList(l.id)"><i class='bx bx-trash text-red-500'></i></button>
+            <button @click="deleteList(l.id)">
+              <i class='bx bx-trash text-red-500'></i>
+            </button>
         </div>
     </template>
     <template v-if="props.Listpopup">

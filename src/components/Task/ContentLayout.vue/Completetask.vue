@@ -32,8 +32,16 @@ function onDragEnd() {
             <h1>{{ showCompleted ? 'Hide Completed' : 'Show Completed' }} ({{ props.completedTasks.length }})</h1>
         </div>
         <div v-show="showCompleted" class="flex-1 overflow-y-auto ">
-            <draggable v-model="props.completedTasks" item-key="id" class="space-y-2" handle=".drag-handle"   
-            :animation="200" ghost-class="drag-ghost" chosen-class="drag-chosen" @end="onDragEnd">
+            <draggable 
+            v-model="props.completedTasks" 
+            item-key="id" 
+            class="space-y-2" 
+            handle=".drag-handle"   
+            :animation="200" 
+            ghost-class="drag-ghost" 
+            chosen-class="drag-chosen" 
+            @end="onDragEnd"
+            >
                 <template #item="{ element: t }">
                     <div :key="t.id" class="flex items-center">
                     <button class="drag-handle icon-btn">

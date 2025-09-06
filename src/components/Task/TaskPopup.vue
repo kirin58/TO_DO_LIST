@@ -96,8 +96,14 @@ onMounted(() => {
                         </button>
                     </div>
                     <div class="relative flex items-center">
-                        <Datepicker :placement="'left-start'" :auto-apply="true" :enable-time-picker="false" locale="th"
-                        input-class-name="text-sm border-none bg-transparent focus:ring-0" v-model="selectDate">
+                        <Datepicker 
+                        :placement="'left-start'" 
+                        :auto-apply="true" 
+                        :enable-time-picker="false" 
+                        locale="th"
+                        input-class-name="text-sm border-none bg-transparent focus:ring-0" 
+                        v-model="selectDate"
+                        >
                             <template #trigger>
                                 <button type="button" class="text-x">
                                     <i class='bx  bxs-calendar'  ></i>
@@ -128,18 +134,27 @@ onMounted(() => {
         </div>
         <div class="taskpopup_line"></div>
         <div class="taskpopup_func">
-            <button @click="emit('pin-task')"><i class='bx  bx-pin'  ></i></button>
+            <button @click="emit('pin-task')">
+                <i class='bx  bx-pin'  ></i>
+            </button>
             <p>Pin</p>
         </div>
         <div>
             <div class="taskpopup_func justify-between">
                 <div class="flex gap-2">
-                    <button><i class='bx  bx-chevron-right-square'  ></i> </button>
+                    <button>
+                        <i class='bx  bx-chevron-right-square'  ></i> 
+                    </button>
                     <p>Lists</p>
                 </div>
                 <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <Listspopup v-if="showList && internalLists.length > 0" :lists="internalLists" :Listbar="false" :Listpopup="true"/>
+            <Listspopup 
+            v-if="showList && internalLists.length > 0" 
+            :lists="internalLists" 
+            :Listbar="false" 
+            :Listpopup="true"
+            />
         </div>
         <div>
             <div class="taskpopup_func justify-between">
@@ -149,12 +164,20 @@ onMounted(() => {
                 </div>
                 <i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
             </div>
-            <TagPopup v-if="showTag" :tags="internalTags" :tagbar="false" :tagpopup="true" @select="(tag) => emit('select-tag',tag)"/>
+            <TagPopup 
+            v-if="showTag" 
+            :tags="internalTags" 
+            :tagbar="false" 
+            :tagpopup="true" 
+            @select="(tag) => emit('select-tag',tag)"
+            />
         </div>
         <template v-if="!props.isNew">
             <div class="taskpopup_line"></div>
             <div @click="emit('delete')" class="taskpopup_func text-red-500">
-                <button ><i class='bx  bx-trash'></i></button>
+                <button>
+                    <i class='bx  bx-trash'></i>
+                </button>
                 <p>Delete</p>
             </div>
         </template>

@@ -63,9 +63,16 @@ watch(() => props.editText, (val) => {
 </script>
 
 <template>
-    <draggable v-model="tasksForDraggableMutable" item-key="id" 
-    class="space-y-2" handle=".drag-handle" :animation="200" 
-    ghost-class="drag-ghost"chosen-class="drag-chosen"@end="onDragEnd">
+    <draggable 
+    v-model="tasksForDraggableMutable" 
+    item-key="id" 
+    class="space-y-2" 
+    handle=".drag-handle" 
+    :animation="200" 
+    ghost-class="drag-ghost"
+    chosen-class="drag-chosen" 
+    @end="onDragEnd"
+    >
     <template #item="{ element: t }">
       <div v-if="t" :key="t.id" class="flex items-center">
         <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
@@ -74,9 +81,14 @@ watch(() => props.editText, (val) => {
           <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
             <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
-            <input v-else v-model="localEditText" class="w-full bg-transparent outline-none border-none focus:ring-0"
-                @keyup.enter="$emit('edit-save', t, localEditText)"
-                @blur="$emit('edit-save', t, localEditText)" ref="editInput"/>
+            <input 
+            v-else 
+            v-model="localEditText" 
+            class="w-full bg-transparent outline-none border-none focus:ring-0"
+            @keyup.enter="$emit('edit-save', t, localEditText)"
+            @blur="$emit('edit-save', t, localEditText)" 
+            ref="editInput"
+            />
           </div>
           <div class="max-w-[50%] flex items-center gap-3">
               <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="flex items-center">
@@ -94,10 +106,15 @@ watch(() => props.editText, (val) => {
           </button>
           <div v-if="taskMenu === t.id" @click.self="taskMenu = null"
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
-                <TaskPopup v-model="t.dueDate"@update:modelValue="$emit('edit-date', t, $event)"
-                @pin-task="$emit('pin-task', t)"@set-priority="$emit('set-priority', t, $event)"
-                @delete="$emit('delete-task', t.id)":lists="lists" :tags="tags" 
-                @select-tag="(tag) => $emit('select-tag',t,tag)"/>
+                <TaskPopup 
+                v-model="t.dueDate"
+                @update:modelValue="$emit('edit-date', t, $event)"
+                @pin-task="$emit('pin-task', t)"
+                @set-priority="$emit('set-priority', t, $event)"
+                @delete="$emit('delete-task', t.id)"
+                :lists="lists" :tags="tags" 
+                @select-tag="(tag) => $emit('select-tag',t,tag)"
+                />
           </div>
         </div>
       </div>

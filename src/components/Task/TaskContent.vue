@@ -53,36 +53,6 @@ const pageTitle = computed(() => {
 const today = new Date()
 today.setHours(0,0,0,0)
 
-const tasksToShow = computed(() => {
-  if (props.mode === 'inbox') {
-    return tasks.value 
-  }
-
-  if (props.mode === 'today') {
-    return tasks.value.filter(t => {
-      if (!t.dueDate) return false
-      const taskDate = new Date(t.dueDate)
-      return taskDate.toDateString() === today.toDateString()
-    })
-  }
-
-  if (props.mode === 'next7') {
-    const start = new Date(today)
-    start.setDate(today.getDate() + 1)
-
-    const end = new Date(today)
-    end.setDate(today.getDate() + 8)
-
-    return tasks.value.filter(t => {
-      if (!t.dueDate) return false
-      const taskDate = new Date(t.dueDate)
-      return taskDate >= start && taskDate <= end
-    })
-  }
-
-  return []
-})
-
 function isShowDatepage() {
   return props.mode !== 'completed' && props.mode !== 'trash'
 }
@@ -286,8 +256,6 @@ function isTaskInMode(task) {
   return false;
 }
 
-const tasksForMode = computed(() => tasks.value.filter(t => isTaskInMode(t)))
-
 const tasksForDraggableMutable = computed({
   get() {
     let result = tasks.value.filter(t => isTaskInMode(t))
@@ -302,13 +270,6 @@ const tasksForDraggableMutable = computed({
   }
 })
 
-const sortedTasks = computed(() => {
-  let result = [...tasksForDraggable.value]
-  if (sortByDate.value) result.sort(sortByDateFn)
-  else if (sortByPriority.value) result.sort(sortByPriorityFn)
-  return result
-})
-
 const lists = ref([])
 onMounted(() => {
   const savedLists = localStorage.getItem('myLists')
@@ -321,15 +282,21 @@ onMounted(() => {
     <div class="flex flex-col p-6 "
     :class="props.mode == 'completed' || props.mode == 'trash' ? 'h-[12%]' : 'h-[16%]'">
       <div class="flex items-center justify-between p-2 mb-2 ">
-        <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
+        <p  class="font-semibold text-3xl text-stone-800">{{ pageTitle}}</p>
         <div v-if="isShowDatepage()" class="text-stone-400 text-2xl">
-          <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
-          <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>
+          <button @click="toggleShuffle">
+            <i class='bx  bx-shuffle'  ></i>
+          </button>
+          <Taskshuffle 
+          v-if="showShuffle" 
+          class="absolute z-50" 
+          @selectType="handleSelectType"
+          />
         </div>
       </div>
       <!-- Create Task -->
       <div v-if="isShowDatepage()">
-        <Createtask @add-task="addTask"></Createtask>
+        <Createtask @add-task="addTask"/>
       </div>
     </div>
     <!-- DatePage -->
@@ -338,38 +305,80 @@ onMounted(() => {
       :class="completedTasks.length > 0 ? 'h-[50%]' : 'h-[100%]'">
         <!-- TaskLists -->
         <div v-show="tasksForDraggableMutable.length > 0" >
-          <TaskList :key="props.mode" :tasks="tasksForDraggableMutable" 
-          :editID="editID" :editText="editText" :lists="lists" :tags="tags" @pin-task="togglePin" 
-          @update:tasks="tasks = $event" @edit-task="edit" @edit-date="editDate" @edit-save="editSave" 
-          @complete-task="completeTask" @set-priority="setPriority" @delete-task="deleteTask" 
-          @select-tag="handleSelectTag"/>
+          <TaskList 
+          :key="props.mode" 
+          :tasks="tasksForDraggableMutable" 
+          :editID="editID" 
+          :editText="editText" 
+          :lists="lists" 
+          :tags="tags" 
+          @pin-task="togglePin" 
+          @update:tasks="tasks = $event" 
+          @edit-task="edit" 
+          @edit-date="editDate" 
+          @edit-save="editSave" 
+          @complete-task="completeTask" 
+          @set-priority="setPriority" 
+          @delete-task="deleteTask" 
+          @select-tag="handleSelectTag"
+          />
         </div>
-        <Emptytask v-show="tasksForDraggableMutable.length === 0" :emptytask="emptytask" :empty="empty" :emptydis="emptydis"/>
+        <Emptytask 
+        v-show="tasksForDraggableMutable.length === 0" 
+        :emptytask="emptytask" 
+        :empty="empty" 
+        :emptydis="emptydis"
+        />
       </div>
       <!-- Complete -->
       <div v-if="completedTasks.length > 0" class="w-full h-[50%]">
-        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
+        <CompletedTasks 
+        :completedTasks="completedTasks" 
+        @uncomplete-task="uncompleteTask"  
+        @saveTasks="saveTasks"
+        />
       </div>
     </div>
     
     <!-- CompletePage -->
     <div v-if="props.mode == 'completed'" class="w-full h-[84%]">
       <div v-if="completedTasks.length > 0" class="h-full pl-6">
-        <CompletedTasks :completedTasks="completedTasks" @uncomplete-task="uncompleteTask"  @saveTasks="saveTasks"/>
+        <CompletedTasks 
+        :completedTasks="completedTasks" 
+        @uncomplete-task="uncompleteTask"  
+        @saveTasks="saveTasks"
+        />
       </div>
-      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
+      <div v-else class="h-full">
+        <Emptytask 
+        :emptytask="emptytask" 
+        :empty="empty" 
+        :emptydis="emptydis"
+        />
+      </div>
     </div>
 
     <!-- TrashPage -->
     <div v-if="props.mode == 'trash'" class="w-full h-[84%]">
       <div v-if="trashTasks.length > 0" class="h-full pl-6">
-        <Trashpage :trashTasks="trashTasks" :selectTrash="selectTrash" @toggleselectTrash="toggleselectTrash" 
-        @restoreTasks="restoreTasks" @deleteForever="deleteForever"/>
+        <Trashpage 
+        :trashTasks="trashTasks" 
+        :selectTrash="selectTrash" 
+        @toggleselectTrash="toggleselectTrash" 
+        @restoreTasks="restoreTasks" 
+        @deleteForever="deleteForever"
+        />
       </div>
-      <div v-else class="h-full"><Emptytask :emptytask="emptytask" :empty="empty" :emptydis="emptydis"></Emptytask></div>
+      <div v-else class="h-full">
+        <Emptytask 
+        :emptytask="emptytask" 
+        :empty="empty" 
+        :emptydis="emptydis"
+        />
+      </div>
     </div>
   </div>
   <div class="h-screen flex">
-    <Rightcontent></Rightcontent>
+    <Rightcontent/>
   </div>
 </template>
