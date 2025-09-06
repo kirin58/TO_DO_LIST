@@ -309,7 +309,7 @@ onMounted(() => {
     <div class="flex flex-col p-6 "
     :class="props.mode == 'completed' || props.mode == 'trash' ? 'h-[12%]' : 'h-[16%]'">
       <div class="flex items-center justify-between p-2 mb-2 ">
-        <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
+        <p  class="text-2xl font-semibold text-stone-600">     {{ pageTitle}}</p>
         <div v-if="isShowDatepage()" class="text-stone-400 text-2xl">
           <button @click="toggleShuffle"><i class='bx  bx-shuffle'  ></i></button>
           <Taskshuffle v-if="showShuffle" class="absolute z-50" @selectType="handleSelectType"></Taskshuffle>

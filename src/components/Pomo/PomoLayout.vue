@@ -1,19 +1,7 @@
 <template>
     <div class="w-3/4 min-h-screen">
-        <div class="flex items-center justify-between px-6 py-8 h-28">
+        <div class="flex items-center justify-start px-6 py-8 h-28">
             <div class="font-semibold text-3xl text-stone-800">Pomodoro</div>
-            <div class="flex space-x-4 text-2xl text-stone-400">
-                <!-- กด + แล้วเปิด popup -->
-                <button @click="showAddTimer = true">
-                    <i class='bx  bx-plus'></i> 
-                </button>
-            </div>
-                <!-- Popup Add Timer -->
-            <AddTimerPopup 
-                v-if="showAddTimer" 
-                @close="closeAddTimer"  
-                @save="handleSave" 
-            />
         </div>
         <div class="flex justify-center mt-4 mb-20 font-bold text-xl ">
             <button
@@ -168,10 +156,8 @@
 </template>
 
 <script>
-import AddTimerPopup from './Pomoaddtime.vue'  // ✅ import ไฟล์ 2
 
 export default {
-    components: { AddTimerPopup },
     emits: ['pomoEnded'], // ✅ ประกาศ event
     data() {
         return {
@@ -348,10 +334,6 @@ export default {
             this.swRunning = false;
             this.swPaused = false;
         },
-        closeAddTimer() {
-            console.log("CLOSE ADD TIMER CALLED");
-            this.showAddTimer = false
-        },
         handleSave(data) {
             console.log("Saved Timer:", data);
             this.mode = data.mode;
@@ -360,7 +342,6 @@ export default {
             this.minutes = data.minutes;
             this.seconds = 0;
             }
-            this.showAddTimer = false
         }
     },
     mounted() {
