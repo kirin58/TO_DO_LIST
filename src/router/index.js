@@ -10,7 +10,6 @@ import Next7 from '@/views/Task/Next7.vue'
 import Completed from '@/views/Task/Completed.vue'
 import Trash from '@/views/Task/Trash.vue'
 
-
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/Login' , name: 'Login', component: Login},

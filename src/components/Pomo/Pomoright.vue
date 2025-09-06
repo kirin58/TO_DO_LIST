@@ -28,11 +28,6 @@
             <div class="font-semibold text-2xl text-stone-800  py-10 ">
                 Focus Record
             </div>
-            <div class="flex space-x-4 text-2xl text-stone-400">
-                <button>
-                    <i class='bx  bx-plus'  ></i> 
-                </button>
-            </div>
         </div>
         <div class="flex items-center justify-center h-1/2" v-if="pomoSessions.length === 0">
             <div class="relative w-56 h-56">

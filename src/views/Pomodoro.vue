@@ -2,9 +2,8 @@
 import NavBar from '@/components/NavBar.vue';
 import PomoLayout from '@/components/Pomo/PomoLayout.vue';
 import Pomoright from '@/components/Pomo/Pomoright.vue';
-
 export default {
-  components: { PomoLayout, Pomoright ,NavBar  },
+  components: { PomoLayout, Pomoright ,NavBar},
   data() {
     return {
       sessions: JSON.parse(localStorage.getItem("sessions") || "[]")

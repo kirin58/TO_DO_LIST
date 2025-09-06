@@ -1,17 +1,9 @@
 <template>
     <div class="w-3/4 min-h-screen">
-        <div class="flex items-center justify-between px-6 py-8 h-28">
+        <div class="flex items-center justify-start px-6 py-8 h-28">
             <div class="font-semibold text-3xl text-stone-800">Pomodoro</div>
-            <div class="flex space-x-4 text-2xl text-stone-400">
-                <button>
-                    <i class='bx  bx-plus'></i> 
-                </button>
-                <button>
-                    <i class='bx  bx-dots-horizontal-rounded'></i>
-                </button>
-            </div>
         </div>
-        <div class="flex justify-center mt-4 font-bold text-xl ">
+        <div class="flex justify-center mt-4 mb-20 font-bold text-xl ">
             <button
                 :class="['rounded-full px-6 py-2', mode === 'pomo' ? 'bg-orange-200 text-orange-800' : 'bg-gray-200 text-gray-500']"
                 @click="switchMode('pomo')"
@@ -23,14 +15,6 @@
                 @click="switchMode('stopwatch')"
             >
                 Stopwatch
-            </button>
-        </div>
-        <div class="justify-center flex items-center px-6 py-5 mt-4 text-xl text-stone-400 font-semibold">
-            <p>
-                Focus
-            </p>
-            <button class="ml-2 mt-1 text-2xl">
-                <i class='bx  bx-chevron-right'></i> 
             </button>
         </div>
 
@@ -86,21 +70,21 @@
                 <template v-if="!isRelaxing">
                     <button
                         v-if="!running"
-                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                        class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4 mt-10"
                         @click="startTimer"
                     >
                         {{ isPaused ? 'Continue' : 'Start' }}
                     </button>
                     <button
                         v-if="!running && (isPaused || (minutes !== inputMinutes || seconds !== 0))"
-                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition "
                         @click="endTimer"
                     >
                         End
                     </button>
                     <button
                         v-if="running"
-                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                        class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition mt-10"
                         @click="pauseTimer"
                     >
                         Pause
@@ -135,14 +119,14 @@
             <template v-else>
                 <button
                     v-if="!swRunning"
-                    class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4"
+                    class="w-56 bg-orange-400 hover:bg-orange-500 text-white font-semibold text-xl rounded-full px-10 py-3 transition mb-4 mt-10"
                     @click="startStopwatch"
                 >
                     {{ swPaused ? 'Continue' : 'Start' }}
                 </button>
                 <button
                     v-if="swRunning"
-                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition"
+                    class="w-56 bg-white border border-orange-300 text-orange-400 font-semibold text-xl rounded-full px-10 py-3 transition mt-10"
                     @click="pauseStopwatch"
                 >
                     Pause
@@ -172,7 +156,9 @@
 </template>
 
 <script>
+
 export default {
+    emits: ['pomoEnded'], // ✅ ประกาศ event
     data() {
         return {
             // Pomodoro
@@ -194,7 +180,10 @@ export default {
             swRunning: false,
             swPaused: false,
 
-            sessions: JSON.parse(localStorage.getItem("sessions") || "[]")
+            sessions: JSON.parse(localStorage.getItem("sessions") || "[]"),
+
+            // ✅ state คุม popup
+            showAddTimer: false,
         };
     },
     methods: {
@@ -206,21 +195,31 @@ export default {
             if (this.running) return;
             this.running = true;
             this.isPaused = false;
-            if (!this.sessionStart){
+            
+            if (!this.sessionStart) {
                 this.sessionStart = new Date();
             }
+
+            // กำหนดเวลาตามโหมด
+            let targetMinutes = this.isRelaxing ? 5 : this.inputMinutes;
+            this.minutes = targetMinutes;
+            this.seconds = 0;
+
             this.timer = setInterval(() => {
                 if (this.seconds === 0) {
                     if (this.minutes === 0) {
                         clearInterval(this.timer);
                         this.running = false;
-                        // Emit session เมื่อจับเวลาจบเอง
                         this.emitSession();
+
                         if (this.isRelaxing) {
                             this.isRelaxing = false;
                             this.minutes = this.inputMinutes;
                             this.seconds = 0;
                         } else {
+                            this.isRelaxing = true;
+                            this.minutes = 5;
+                            this.seconds = 0;
                             this.showRelaxModal = true;
                         }
                     } else {
@@ -249,7 +248,6 @@ export default {
         emitSession() {
             if (this.sessionStart) {
                 const end = new Date();
-                // เวลาที่ผ่านไปจริง
                 const diffMs = end - this.sessionStart;
                 const usedMinutes = Math.floor(diffMs / 60000);
                 const usedSeconds = Math.floor((diffMs % 60000) / 1000);
@@ -262,9 +260,9 @@ export default {
                 };
 
                 this.sessions.push(session);
-                localStorage.setItem("sessions",JSON.stringify(this.sessions));
+                localStorage.setItem("sessions", JSON.stringify(this.sessions));
 
-                this.$emit('pomo-ended', session);
+                this.$emit('pomoEnded', session);
                 this.sessionStart = null;
             }
         },
@@ -336,10 +334,21 @@ export default {
             this.swRunning = false;
             this.swPaused = false;
         },
+        handleSave(data) {
+            console.log("Saved Timer:", data);
+            this.mode = data.mode;
+            if (data.mode === 'pomo' && data.minutes) {
+            this.inputMinutes = data.minutes;
+            this.minutes = data.minutes;
+            this.seconds = 0;
+            }
+        }
     },
     mounted() {
         this.minutes = 25;
         this.seconds = 0;
     }
 };
+
+
 </script>
