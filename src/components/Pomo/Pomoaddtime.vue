@@ -1,18 +1,35 @@
 <template>
-  <div class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20">
+  <!-- Overlay -->
+  <div
+    class="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-20"
+    @click.self="$emit('close')"
+  >
+    <!-- Popup -->
     <div class="bg-white rounded-lg shadow-lg p-6 min-w-[320px] relative">
-      <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg" @click="$emit('close')">
+      <!-- ปุ่ม X -->
+      <button
+        class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-lg"
+        @click="$emit('close')"
+      >
         &times;
       </button>
+
+      <!-- Title -->
       <div class="font-semibold text-lg mb-4">Add Timer</div>
+
+      <!-- Input Title -->
       <input
         type="text"
         v-model="title"
         class="border rounded px-2 py-1 w-full mb-4"
         placeholder="POMO"
       />
+
+      <!-- Time Mode -->
       <div class="mb-4">
         <div class="font-medium mb-2">Time Mode</div>
+
+        <!-- Pomo -->
         <div class="flex items-center mb-2">
           <input
             type="radio"
@@ -32,6 +49,8 @@
           />
           <span>mins</span>
         </div>
+
+        <!-- Stopwatch -->
         <div class="flex items-center">
           <input
             type="radio"
@@ -43,8 +62,15 @@
           <label for="stopwatch">Stopwatch</label>
         </div>
       </div>
+
+      <!-- Action Buttons -->
       <div class="flex justify-end space-x-2">
-        <button @click="$emit('close')" class="border px-3 py-1 rounded text-gray-600">Cancel</button>
+        <button
+          @click="$emit('close')"
+          class="border px-3 py-1 rounded text-gray-600"
+        >
+          Cancel
+        </button>
         <button
           @click="save"
           class="bg-orange-400 text-white px-4 py-1 rounded disabled:opacity-50"
@@ -74,7 +100,7 @@ export default {
         mode: this.mode,
         minutes: this.mode === 'pomo' ? this.minutes : null,
       });
-      this.$emit('close');
+      this.$emit('close'); // ปิด popup หลัง save
     },
   },
 };
