@@ -4,10 +4,9 @@ import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
 
 const props = defineProps({
-  tasks: Array,
+  tasks: { type: Array, default: () => [] },
   editID: Number,
   editText: String,
-  lists: Array,
   tags: { type: Array, default: () => [] } 
 })
 
@@ -25,6 +24,7 @@ const emit = defineEmits([
 const taskMenu = ref(null)
 const popupPosition = ref('bottom')
 const editInput = ref(null)
+const tagsList = ref([...props.tags])
 
 function togglePopup(id, event) {
   taskMenu.value = taskMenu.value === id ? null : id;
@@ -35,10 +35,10 @@ function togglePopup(id, event) {
   }
 }
 
-const tasksForDraggableMutable = ref([...props.tasks])
+const tasksForDraggableMutable = ref([...(props.tasks || [])])
 
 watch(() => props.tasks, (newTasks) => {
-  tasksForDraggableMutable.value = [...newTasks]
+  tasksForDraggableMutable.value = [...(newTasks || [])]
 }, { deep: true })
 
 function onDragEnd() {
@@ -60,6 +60,36 @@ watch(() => props.editText, (val) => {
   localEditText.value = val
 })
 
+function handleSelectTag(task, tag) {
+  // อัปเดต task.tagId
+  task.tagId = tag ? tag.id : null
+
+  // อัปเดต array ของ tasks
+  const index = tasksForDraggableMutable.value.findIndex(t => t.id === task.id)
+  if (index !== -1) {
+    tasksForDraggableMutable.value[index] = { ...task }
+  }
+
+  // emit ไป parent
+  emit('update:tasks', tasksForDraggableMutable.value)
+
+  // บันทึก tasks ลง localStorage พร้อม tagId
+  localStorage.setItem('myTasks', JSON.stringify(tasksForDraggableMutable.value))
+}
+onMounted(() => {
+  const savedTasks = JSON.parse(localStorage.getItem('myTasks')) || []
+  if (savedTasks.length > 0) {
+    tasksForDraggableMutable.value = savedTasks
+  } else {
+    tasksForDraggableMutable.value = [...props.tasks]
+  }
+})
+onMounted(() => {
+  const savedTags = JSON.parse(localStorage.getItem('myTags')) || []
+  if (savedTags.length > 0) {
+    tagsList.value = savedTags
+  }
+})
 </script>
 
 <template>
@@ -94,8 +124,8 @@ watch(() => props.editText, (val) => {
               <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="flex items-center">
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
-              <span v-if="tags && t.tagId" class=" bg-teal-300 p-1 rounded-lg text-lg">
-                  {{ tags.find(tag => String(tag.id) === String(t.tagId))?.text}}
+              <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
@@ -112,8 +142,8 @@ watch(() => props.editText, (val) => {
                 @pin-task="$emit('pin-task', t)"
                 @set-priority="$emit('set-priority', t, $event)"
                 @delete="$emit('delete-task', t.id)"
-                :lists="lists" :tags="tags" 
-                @select-tag="(tag) => $emit('select-tag',t,tag)"
+                :tags="tagsList" 
+                @select-tag="(tag) => handleSelectTag(t, tag)" 
                 />
           </div>
         </div>

@@ -1,40 +1,16 @@
 <script setup>
 import {ref,onMounted,watch} from 'vue'
-import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
-import Listspopup from '../Lists/Listspopup.vue';
 import Tagpopup from '../tags/tagpopup.vue';
 
 const props = defineProps({
-    lists: Array,
     tags: Array
 })
 
-const lists = ref([])
 const tags = ref([])
 
-const showListInput = ref(false)
 const showTagInput = ref(false)
-const showList = ref(false)
 const showTag = ref(false)
-
-function handleAddList(newList){
-  lists.value.push({ id: Date.now(), text: newList })
-  localStorage.setItem('myLists', JSON.stringify(lists.value))
-}
-
-function updateList(updatedlist) {
-  const index = lists.value.findIndex(l => l.id === updatedlist.id)
-  if (index !== -1) {
-    lists.value[index] = updatedlist
-    localStorage.setItem('myLists', JSON.stringify(lists.value))
-  }
-}
-
-function deleteList(id) {
-    lists.value = lists.value.filter(l => l.id !== id)
-    localStorage.setItem('myLists', JSON.stringify(lists.value))
-}
 
 function handleAddTag(newTag){
     tags.value.push({ id: Date.now(), text: newTag })
@@ -53,10 +29,7 @@ function deleteTags(id){
 }
 
 onMounted(() => {
-  const savedLists = localStorage.getItem('myLists')
-  if (savedLists) lists.value = JSON.parse(savedLists)
-
-  const savedTags = localStorage.getItem('myTags')
+ const savedTags = localStorage.getItem('myTags')
   if (savedTags) tags.value = JSON.parse(savedTags)
 })
 </script>
@@ -80,30 +53,7 @@ onMounted(() => {
             <div>
                 <div class="line">
                     <div></div>
-                </div>
-                <div class="list">
-                    <div class="flex items-center">
-                        <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
-                        <p class="text-md">List</p>
-                    </div>
-                    <div>
-                        <i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i>
-                    </div>
-                </div>
-                <listcomp 
-                v-if="showListInput"  
-                @closeInput="showListInput = false" 
-                @addList="handleAddList"
-                />
-                <listspopup 
-                v-if="showList" 
-                :lists="lists" 
-                :Listbar="true" 
-                :Listpopup="false" 
-                @update-list="updateList" 
-                @delete-list="deleteList"
-                />
-                
+                </div>         
                 <div class="list">
                     <div class="flex items-center">
                         <i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i> 

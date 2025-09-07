@@ -2,14 +2,9 @@
 import { ref ,watch , onMounted} from 'vue'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
-import Listspopup from '../Lists/Listspopup.vue'
 import TagPopup from '../tags/tagpopup.vue'
 
 const props = defineProps({
-    lists: {
-    type: Array,
-    default: () => []
-    },
     tags: {
     type: Array,
     default: () => []
@@ -32,6 +27,7 @@ watch(selectDate, (newValue) => {
     emit('update:modelValue', newValue)
 })
 
+
 const setDateOffset = (days) => {
     const date = new Date()
     date.setDate(date.getDate() + days)
@@ -40,11 +36,12 @@ const setDateOffset = (days) => {
     emit('update:modelValue', iso)
 }
 
-const showList = ref(false)
-const internalLists = ref([...props.lists])
-
 const showTag = ref(false)
-const internalTags = ref([...props.tags])
+const internalTags = ref([])
+onMounted(() => {
+  const saved = JSON.parse(localStorage.getItem('myTags')) || []
+  internalTags.value = saved.length ? saved : [...props.tags]
+})
 
 watch(
   () => props.tasks,
@@ -52,14 +49,6 @@ watch(
     tasksForDraggableMutable.value = Array.isArray(newTasks) ? [...newTasks] : []
   },
   { deep: true, immediate: true }
-)
-
-watch(
-  () => props.lists,
-  (newLists) => {
-    internalLists.value = Array.isArray(newLists) ? [...newLists] : []
-  },
-  { immediate: true }
 )
 
 watch(
@@ -73,6 +62,16 @@ onMounted(() => {
   const savedTags = localStorage.getItem('myTags')
   tags.value = savedTags ? JSON.parse(savedTags) : []
 })
+function handleUpdateTag(updatedTag) {
+  const index = internalTags.value.findIndex(t => t.id === updatedTag.id)
+  if (index !== -1) {
+    internalTags.value[index] = { ...updatedTag }
+  } else {
+    internalTags.value.push(updatedTag)
+  }
+  localStorage.setItem('myTags', JSON.stringify(internalTags.value))
+  emit('update-tag', updatedTag)
+}
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -142,23 +141,6 @@ onMounted(() => {
         <div>
             <div class="taskpopup_func justify-between">
                 <div class="flex gap-2">
-                    <button>
-                        <i class='bx  bx-chevron-right-square'  ></i> 
-                    </button>
-                    <p>Lists</p>
-                </div>
-                <i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i>
-            </div>
-            <Listspopup 
-            v-if="showList && internalLists.length > 0" 
-            :lists="internalLists" 
-            :Listbar="false" 
-            :Listpopup="true"
-            />
-        </div>
-        <div>
-            <div class="taskpopup_func justify-between">
-                <div class="flex gap-2">
                     <button>#</button>
                     <p>Tags</p>
                 </div>
@@ -170,6 +152,7 @@ onMounted(() => {
             :tagbar="false" 
             :tagpopup="true" 
             @select="(tag) => emit('select-tag',tag)"
+            @update-tag="handleUpdateTag"
             />
         </div>
         <template v-if="!props.isNew">
