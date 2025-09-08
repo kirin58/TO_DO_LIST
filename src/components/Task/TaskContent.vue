@@ -1,4 +1,5 @@
 <script setup>
+import { supabase } from '../../supabase/supabase'
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import TaskList from './ContentLayout.vue/TaskList.vue'
 import Taskshuffle from './Taskshuffle.vue'
@@ -67,15 +68,38 @@ function saveTasks() {
   localStorage.setItem('myTags', JSON.stringify(tags.value || []))
 }
 
-function fetchTasks() {
-  const saved = localStorage.getItem('tasks');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    tasks.value = parsed.incomplete || [];
-    completedTasks.value = parsed.complete || [];
-    trashTasks.value = parsed.trash || [];
-  }
+async function fetchTasks() {
+  // ดึง task ปกติ (ยังไม่ complete, ไม่ trashed)
+  const { data: incomplete, error: err1 } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('is_completed', false)
+    .eq('is_trashed', false)
+
+  // ดึง completed tasks
+  const { data: completed, error: err2 } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('is_completed', true)
+    .eq('is_trashed', false)
+
+  // ดึง trash
+  const { data: trash, error: err3 } = await supabase
+    .from('tasks')
+    .select('*')
+    .eq('is_trashed', true)
+
+  if (err1 || err2 || err3) console.error(err1 || err2 || err3)
+
+  tasks.value = incomplete || []
+  completedTasks.value = completed || []
+  trashTasks.value = trash || []
+
+  // ดึง tags
+  const { data: allTags } = await supabase.from('tags').select('*')
+  tags.value = allTags || []
 }
+
 
 
 onMounted(() => {
@@ -85,35 +109,51 @@ onMounted(() => {
 })
 
 
-function addTask(newTask) {
-  tasks.value.push(newTask)
-  saveTasks()
+async function addTask(newTask) {
+  // newTask ต้องมี title, list_id, tag_id, due_date (option)
+  const { data, error } = await supabase
+    .from('tasks')
+    .insert([newTask])
+    .select()
+
+  if (error) console.error(error)
+  else tasks.value.push(...data)
 }
 
-function deleteTask(taskId) {
+async function deleteTask(taskId) {
   const t = tasks.value.find(x => x.id === taskId) || completedTasks.value.find(x => x.id === taskId)
-  if (t) {
-    trashTasks.value.push({...t,deletedAt: new Date()})
+  if (!t) return
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ is_trashed: true })
+    .eq('id', taskId)
+    .select()
+
+  if (!error) {
+    tasks.value = tasks.value.filter(t => t.id !== taskId)
+    completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
+    trashTasks.value.push(data[0])
   }
-  tasks.value = tasks.value.filter(t => t.id !== taskId)
-  completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
-  saveTasks()
 }
 
-function edit(t) {
-  editID.value = t.id
-  editText.value = t.text
-}
-function editSave(task, newText, cancel = false) {
+
+async function editSave(task, newText, cancel = false) {
   if (cancel || newText.trim() === '') {
     editID.value = null
     editText.value = ''
     return
   }
-  task.text = newText
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ title: newText })
+    .eq('id', task.id)
+    .select()
+
+  if (!error) Object.assign(task, data[0])
   editID.value = null
   editText.value = ''
-  saveTasks()
 }
 
 watch(editID, async (newvalue) => {
@@ -129,27 +169,30 @@ function editDate(task, newDate) {
   fetchTasks()
 }
 
-function completeTask(task) {
-  tasks.value = tasks.value.filter(t => t.id !== task.id)
-  if (!completedTasks.value.find(t => t.id === task.id)) {
-    completedTasks.value.push(task)
+async function completeTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ is_completed: true })
+    .eq('id', task.id)
+    .select()
+  
+  if (!error) {
+    tasks.value = tasks.value.filter(t => t.id !== task.id)
+    completedTasks.value.push(data[0])
   }
-  saveTasks()  
 }
 
-function uncompleteTask(task) {
-  completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
-  if (!tasks.value.find(t => t.id === task.id)) {
-    tasks.value.push(task)
+async function uncompleteTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ is_completed: false })
+    .eq('id', task.id)
+    .select()
+  
+  if (!error) {
+    completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
+    tasks.value.push(data[0])
   }
-
-  tasks.value.sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return 0
-  })
-
-  saveTasks()
 }
 
 function sortByDateFn(a, b) {
@@ -213,21 +256,21 @@ function toggleselectTrash(){
   trashTasks.value.forEach(t => {t.isDeleted = selectTrash.value})
 }
 
-function restoreTasks() {
+async function restoreTasks() {
   const toRestore = trashTasks.value.filter(t => t.isDeleted)
 
-  if (toRestore.length > 0) {
-    toRestore.forEach(t => {
-      if (t.completed) {
-        completedTasks.value.push({ ...t, isDeleted: false })
-      } else {
-        tasks.value.push({ ...t, isDeleted: false })
-      }
-    })
+  for (let task of toRestore) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ is_trashed: false })
+      .eq('id', task.id)
+      .select()
 
-    trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
-
-    saveTasks()
+    if (!error) {
+      trashTasks.value = trashTasks.value.filter(t => t.id !== task.id)
+      if (task.is_completed) completedTasks.value.push(data[0])
+      else tasks.value.push(data[0])
+    }
   }
 }
 
