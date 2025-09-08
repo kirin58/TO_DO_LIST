@@ -61,21 +61,33 @@ watch(() => props.editText, (val) => {
 })
 
 function handleSelectTag(task, tag) {
-  // อัปเดต task.tagId
   task.tagId = tag ? tag.id : null
 
-  // อัปเดต array ของ tasks
   const index = tasksForDraggableMutable.value.findIndex(t => t.id === task.id)
   if (index !== -1) {
     tasksForDraggableMutable.value[index] = { ...task }
   }
 
-  // emit ไป parent
   emit('update:tasks', tasksForDraggableMutable.value)
 
-  // บันทึก tasks ลง localStorage พร้อม tagId
   localStorage.setItem('myTasks', JSON.stringify(tasksForDraggableMutable.value))
 }
+
+function handleUpdateTag(updatedTag) {
+  const index = tagsList.value.findIndex(t => t.id === updatedTag.id)
+  if (index !== -1) {
+    tagsList.value[index] = { ...updatedTag }
+  } else {
+    tagsList.value.push(updatedTag)
+  }
+  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
+}
+
+function handleDeleteTag(id) {
+  tagsList.value = tagsList.value.filter(t => t.id !== id)
+  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
+}
+
 onMounted(() => {
   const savedTasks = JSON.parse(localStorage.getItem('myTasks')) || []
   if (savedTasks.length > 0) {
@@ -143,7 +155,9 @@ onMounted(() => {
                 @set-priority="$emit('set-priority', t, $event)"
                 @delete="$emit('delete-task', t.id)"
                 :tags="tagsList" 
-                @select-tag="(tag) => handleSelectTag(t, tag)" 
+                @select-tag="(tag) => handleSelectTag(t, tag)"
+                @update-tag="handleUpdateTag"
+                @delete-tag="handleDeleteTag"
                 />
           </div>
         </div>

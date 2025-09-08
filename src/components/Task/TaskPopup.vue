@@ -5,22 +5,15 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import TagPopup from '../tags/tagpopup.vue'
 
 const props = defineProps({
-    tags: {
-    type: Array,
-    default: () => []
-    },
-    tasks: {
-    type: Array,
-    default: () => []
-    },
+    tags: {type: Array,default: () => []},
+    tasks: {type: Array,default: () => []},
     modelValue: String,
     isNew: { type: Boolean, default: false }
 })
 
-const tags = ref([])
 const tasksForDraggableMutable = ref([...props.tasks])
 
-const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task','select-tag' ])
+const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task','select-tag','update-tag' ])
 
 const selectDate = ref(props.modelValue || undefined)
 watch(selectDate, (newValue) => {
@@ -54,14 +47,12 @@ watch(
 watch(
   () => props.tags,
   (newTags) => {
-    internalTags.value = Array.isArray(newTags) ? [...newTags] : []
-  },
-  { immediate: true }
+    if (newTags && newTags.length > 0) {
+      internalTags.value = [...newTags]
+    }
+  }
 )
-onMounted(() => {
-  const savedTags = localStorage.getItem('myTags')
-  tags.value = savedTags ? JSON.parse(savedTags) : []
-})
+
 function handleUpdateTag(updatedTag) {
   const index = internalTags.value.findIndex(t => t.id === updatedTag.id)
   if (index !== -1) {
