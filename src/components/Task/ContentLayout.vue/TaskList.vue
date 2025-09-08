@@ -4,10 +4,9 @@ import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
 
 const props = defineProps({
-  tasks: Array,
+  tasks: { type: Array, default: () => [] },
   editID: Number,
   editText: String,
-  lists: Array,
   tags: { type: Array, default: () => [] } 
 })
 
@@ -25,6 +24,7 @@ const emit = defineEmits([
 const taskMenu = ref(null)
 const popupPosition = ref('bottom')
 const editInput = ref(null)
+const tagsList = ref([...props.tags])
 
 function togglePopup(id, event) {
   taskMenu.value = taskMenu.value === id ? null : id;
@@ -35,10 +35,10 @@ function togglePopup(id, event) {
   }
 }
 
-const tasksForDraggableMutable = ref([...props.tasks])
+const tasksForDraggableMutable = ref([...(props.tasks || [])])
 
 watch(() => props.tasks, (newTasks) => {
-  tasksForDraggableMutable.value = [...newTasks]
+  tasksForDraggableMutable.value = [...(newTasks || [])]
 }, { deep: true })
 
 function onDragEnd() {
@@ -60,12 +60,61 @@ watch(() => props.editText, (val) => {
   localEditText.value = val
 })
 
+function handleSelectTag(task, tag) {
+  task.tagId = tag ? tag.id : null
+
+  const index = tasksForDraggableMutable.value.findIndex(t => t.id === task.id)
+  if (index !== -1) {
+    tasksForDraggableMutable.value[index] = { ...task }
+  }
+
+  emit('update:tasks', tasksForDraggableMutable.value)
+
+  localStorage.setItem('myTasks', JSON.stringify(tasksForDraggableMutable.value))
+}
+
+function handleUpdateTag(updatedTag) {
+  const index = tagsList.value.findIndex(t => t.id === updatedTag.id)
+  if (index !== -1) {
+    tagsList.value[index] = { ...updatedTag }
+  } else {
+    tagsList.value.push(updatedTag)
+  }
+  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
+}
+
+function handleDeleteTag(id) {
+  tagsList.value = tagsList.value.filter(t => t.id !== id)
+  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
+}
+
+onMounted(() => {
+  const savedTasks = JSON.parse(localStorage.getItem('myTasks')) || []
+  if (savedTasks.length > 0) {
+    tasksForDraggableMutable.value = savedTasks
+  } else {
+    tasksForDraggableMutable.value = [...props.tasks]
+  }
+})
+onMounted(() => {
+  const savedTags = JSON.parse(localStorage.getItem('myTags')) || []
+  if (savedTags.length > 0) {
+    tagsList.value = savedTags
+  }
+})
 </script>
 
 <template>
-    <draggable v-model="tasksForDraggableMutable" item-key="id" 
-    class="space-y-2" handle=".drag-handle" :animation="200" 
-    ghost-class="drag-ghost"chosen-class="drag-chosen"@end="onDragEnd">
+    <draggable 
+    v-model="tasksForDraggableMutable" 
+    item-key="id" 
+    class="space-y-2" 
+    handle=".drag-handle" 
+    :animation="200" 
+    ghost-class="drag-ghost"
+    chosen-class="drag-chosen" 
+    @end="onDragEnd"
+    >
     <template #item="{ element: t }">
       <div v-if="t" :key="t.id" class="flex items-center">
         <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
@@ -74,16 +123,21 @@ watch(() => props.editText, (val) => {
           <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
             <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
-            <input v-else v-model="localEditText" class="w-full bg-transparent outline-none border-none focus:ring-0"
-                @keyup.enter="$emit('edit-save', t, localEditText)"
-                @blur="$emit('edit-save', t, localEditText)" ref="editInput"/>
+            <input 
+            v-else 
+            v-model="localEditText" 
+            class="w-full bg-transparent outline-none border-none focus:ring-0"
+            @keyup.enter="$emit('edit-save', t, localEditText)"
+            @blur="$emit('edit-save', t, localEditText)" 
+            ref="editInput"
+            />
           </div>
           <div class="max-w-[50%] flex items-center gap-3">
               <div v-if="t.dueDate && !isNaN(new Date(t.dueDate).getTime())" class="flex items-center">
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
-              <span v-if="tags && t.tagId" class="max-w-[50%] bg-teal-300 p-1 rounded-lg text-lg break-words">
-                  {{ tags.find(tag => String(tag.id) === String(t.tagId))?.text || 'Unknown Tag' }}
+              <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
@@ -94,10 +148,17 @@ watch(() => props.editText, (val) => {
           </button>
           <div v-if="taskMenu === t.id" @click.self="taskMenu = null"
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
-                <TaskPopup v-model="t.dueDate"@update:modelValue="$emit('edit-date', t, $event)"
-                @pin-task="$emit('pin-task', t)"@set-priority="$emit('set-priority', t, $event)"
-                @delete="$emit('delete-task', t.id)":lists="lists" :tags="tags" 
-                @select-tag="(tag) => $emit('select-tag',t,tag)"/>
+                <TaskPopup 
+                v-model="t.dueDate"
+                @update:modelValue="$emit('edit-date', t, $event)"
+                @pin-task="$emit('pin-task', t)"
+                @set-priority="$emit('set-priority', t, $event)"
+                @delete="$emit('delete-task', t.id)"
+                :tags="tagsList" 
+                @select-tag="(tag) => handleSelectTag(t, tag)"
+                @update-tag="handleUpdateTag"
+                @delete-tag="handleDeleteTag"
+                />
           </div>
         </div>
       </div>

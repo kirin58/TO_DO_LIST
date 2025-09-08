@@ -12,6 +12,7 @@ const emit = defineEmits(['delete-tag','update-tag','select'])
 const localtags = ref([])
 const editingId = ref(null)
 const editText = ref('')
+const selectedTagId = ref(null) 
 
 watch(() => props.tags, (newVal) => {
   localtags.value = [...newVal]
@@ -53,7 +54,15 @@ onMounted(() => {
         localtags.value = [...props.tags]
     }
 })
-
+function handleSelect(tag) {
+  if (selectedTagId.value === tag.id) {
+    selectedTagId.value = null
+    emit('select', null)
+  } else {
+    selectedTagId.value = tag.id
+    emit('select', tag)
+  }
+}
 </script>
 
 <template>
@@ -71,7 +80,9 @@ onMounted(() => {
         </div>
     </template>
     <template v-if="props.tagpopup">
-        <div v-for="t in localtags" :key="t.id" class="tagstyle cursor-pointer" @click="emit('select',t)">
+        <div v-for="t in localtags" :key="t.id" class="tagstyle cursor-pointer"
+        @click="handleSelect(t)"
+        :class="selectedTagId === t.id ? 'bg-teal-300 text-white' : ''">
             <i class='bx bx-menu text-2xl'></i>
             <span>{{ t.text }}</span>
         </div>

@@ -23,7 +23,22 @@ function addTask() {
 </script>
 <template>
     <div class="flex items-center justify-between bg-zinc-100 rounded-lg p-1 hover:bg-white border border-white focus-within:border-orange-300">
-        <input type="text" v-model="task" @keyup.enter="addTask" placeholder="+ Add task" class="bg-transparent text-slate-500 outline-none"/>
-        <input type="date" v-model="dueDate" locale="th" class="flex items-end ml-2 text-slate-500 bg-transparent outline-none border-none focus:ring-0" />
+        <input 
+        type="text" 
+        v-model="task" 
+        @keyup.enter="addTask" 
+        placeholder="+ Add task" 
+        class="bg-transparent 
+        text-slate-500 
+        outline-none"/>
+        <input type="date" 
+        v-model="dueDate" locale="th" 
+        class="flex items-end ml-2 
+        text-slate-500 
+        bg-transparent 
+        outline-none 
+        border-none 
+        focus:ring-0" 
+        />
     </div>
 </template>

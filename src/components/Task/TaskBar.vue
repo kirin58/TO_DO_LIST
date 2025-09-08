@@ -1,40 +1,16 @@
 <script setup>
 import {ref,onMounted,watch} from 'vue'
-import Listcomp from '../Lists/Listcomp.vue';
 import tagcomp from '../tags/tagcomp.vue';
-import Listspopup from '../Lists/Listspopup.vue';
 import Tagpopup from '../tags/tagpopup.vue';
 
 const props = defineProps({
-    lists: Array,
     tags: Array
 })
 
-const lists = ref([])
 const tags = ref([])
 
-const showListInput = ref(false)
 const showTagInput = ref(false)
-const showList = ref(false)
 const showTag = ref(false)
-
-function handleAddList(newList){
-  lists.value.push({ id: Date.now(), text: newList })
-  localStorage.setItem('myLists', JSON.stringify(lists.value))
-}
-
-function updateList(updatedlist) {
-  const index = lists.value.findIndex(l => l.id === updatedlist.id)
-  if (index !== -1) {
-    lists.value[index] = updatedlist
-    localStorage.setItem('myLists', JSON.stringify(lists.value))
-  }
-}
-
-function deleteList(id) {
-    lists.value = lists.value.filter(l => l.id !== id)
-    localStorage.setItem('myLists', JSON.stringify(lists.value))
-}
 
 function handleAddTag(newTag){
     tags.value.push({ id: Date.now(), text: newTag })
@@ -53,10 +29,7 @@ function deleteTags(id){
 }
 
 onMounted(() => {
-  const savedLists = localStorage.getItem('myLists')
-  if (savedLists) lists.value = JSON.parse(savedLists)
-
-  const savedTags = localStorage.getItem('myTags')
+ const savedTags = localStorage.getItem('myTags')
   if (savedTags) tags.value = JSON.parse(savedTags)
 })
 </script>
@@ -64,32 +37,58 @@ onMounted(() => {
     <div class="min-h-screen w-64 bg-orange-100 flex flex-col items-center p-4">
         <div class="bar">
             <div>
-                <router-link to="/Today" class="taskmenu " active-class="task_active"><i class='bx  bxs-calendar-heart'  ></i><p class="text-base">Today</p></router-link>
-                <router-link to="/Next7" class="taskmenu" active-class="task_active"><i class='bx  bxs-calendar-minus'  ></i><p class="text-base">Next 7 Days</p></router-link>
-                <router-link to="/Inbox" class="taskmenu" active-class="task_active"><i class='bx  bxs-inbox'  ></i> <p class="text-base">Inbox</p></router-link>
+                <router-link to="/Today" class="taskmenu " active-class="task_active">
+                    <i class='bx  bxs-calendar-heart'  ></i>
+                    <p class="text-base">Today</p>
+                </router-link>
+                <router-link to="/Next7" class="taskmenu" active-class="task_active">
+                    <i class='bx  bxs-calendar-minus'  ></i>
+                    <p class="text-base">Next 7 Days</p>
+                </router-link>
+                <router-link to="/Inbox" class="taskmenu" active-class="task_active">
+                    <i class='bx  bxs-inbox'  ></i> 
+                    <p class="text-base">Inbox</p>
+                </router-link>
             </div>
             <div>
-                <div class="line"><div></div></div>
+                <div class="line">
+                    <div></div>
+                </div>         
                 <div class="list">
-                    <div class="flex items-center"><i @click="showList = !showList" :class="showList ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i><p class="text-md">List</p></div>
-                    <div><i class='bx  bx-plus cursor-pointer'  @click="showListInput = true" ></i></div>
+                    <div class="flex items-center">
+                        <i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i> 
+                        <p class="text-md">Tags</p>
+                    </div>
+                    <div>
+                        <i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> 
+                    </div>
                 </div>
-                <listcomp v-if="showListInput"  @closeInput="showListInput = false" @addList="handleAddList"></listcomp>
-                <listspopup v-if="showList" :lists="lists" :Listbar="true" :Listpopup="false" @update-list="updateList" @delete-list="deleteList"></listspopup>
-                
-                <div class="list">
-                    <div class="flex items-center"><i @click="showTag = !showTag" :class="showTag ?'bx bx-chevron-down text-2xl' : 'bx bx-chevron-right text-2xl' "></i> <p class="text-md">Tags</p></div>
-                    <div><i class='bx  bx-plus cursor-pointer'  @click="showTagInput = true"  ></i> </div>
-                </div>
-                <tagcomp v-if="showTagInput" @closeInput="showTagInput = false" @addTag="handleAddTag"></tagcomp>
-                <Tagpopup v-if="showTag" :tags="tags" :tagbar="true" :tagpopup="false" @update-tag="updateTag" @delete-tag="deleteTags"/>
+                <tagcomp 
+                v-if="showTagInput" 
+                @closeInput="showTagInput = false" 
+                @addTag="handleAddTag"
+                />
+                <Tagpopup 
+                v-if="showTag" 
+                :tags="tags" 
+                :tagbar="true" 
+                :tagpopup="false" 
+                @update-tag="updateTag" 
+                @delete-tag="deleteTags"
+                />
             </div>
         </div>
         
         <div class="bar justify-end mb-10">
             <div class="line"><div></div></div>
-            <router-link to="/Completed" class="taskmenu" active-class="task_active"><i class='bx  bx-check-square'  exact-active-class="task_active"></i> <p class="text-base">Completed</p></router-link>
-            <router-link to="/Trash" class="taskmenu" active-class="task_active"><i class='bx  bx-trash'  exact-active-class="task_active"></i> <p class="text-base">Trash</p></router-link>
+            <router-link to="/Completed" class="taskmenu" active-class="task_active">
+                <i class='bx  bx-check-square'  exact-active-class="task_active"></i> 
+                <p class="text-base">Completed</p>
+            </router-link>
+            <router-link to="/Trash" class="taskmenu" active-class="task_active">
+                <i class='bx  bx-trash'  exact-active-class="task_active"></i> 
+                <p class="text-base">Trash</p>
+            </router-link>
         </div>
     </div>
 </template>
