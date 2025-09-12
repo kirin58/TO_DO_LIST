@@ -1,5 +1,6 @@
 <script setup>
 import { ref, watch , onMounted } from 'vue'
+import { supabase } from '../../../supabase/supabase'
 import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
 
@@ -19,30 +20,91 @@ const emit = defineEmits([
   'pin-task',
   'set-priority',
   'delete-task',
+  'select-tag'
 ])
 
 const taskMenu = ref(null)
 const popupPosition = ref('bottom')
 const editInput = ref(null)
 const tagsList = ref([...props.tags])
+const tasksForDraggableMutable = ref([])
+const loading = ref(false)
+const error = ref(null)
 
-function togglePopup(id, event) {
-  taskMenu.value = taskMenu.value === id ? null : id;
-  if (event?.target) {
-    const top = event.target.getBoundingClientRect().top;
-    const screenHeight = window.innerHeight;
-    popupPosition.value = top < screenHeight / 2 ? 'bottom' : 'top';
+async function fetchTasks() {
+  loading.value = true
+  error.value = null
+  try {
+    const { data, error: fetchError } = await supabase
+      .from('tasks')
+      .select(`
+        id,
+        title,
+        completed,
+        pinned,
+        priority,
+        due_date,
+        tag_id,
+        updated_at
+      `)
+      .order('id', { ascending: false })
+
+    if (fetchError) throw fetchError
+
+    // Map ให้ field สอดคล้องกับ UI เดิม
+    tasksForDraggableMutable.value = data.map(task => ({
+      id: task.id,
+      text: task.title,          
+      completed: task.completed, 
+      pinned: task.pinned,
+      priority: task.priority,
+      dueDate: task.due_date,    
+      tagId: task.tag_id         
+    }))
+  } catch (err) {
+    console.error('Error fetching tasks:', err)
+    error.value = err.message
+  } finally {
+    loading.value = false
   }
 }
 
-const tasksForDraggableMutable = ref([...(props.tasks || [])])
-
-watch(() => props.tasks, (newTasks) => {
-  tasksForDraggableMutable.value = [...(newTasks || [])]
-}, { deep: true })
-
 function onDragEnd() {
   emit('update:tasks', tasksForDraggableMutable.value)
+}
+
+function togglePopup(id, event) {
+  taskMenu.value = taskMenu.value === id ? null : id
+  if (event?.target) {
+    const top = event.target.getBoundingClientRect().top
+    const screenHeight = window.innerHeight
+    popupPosition.value = top < screenHeight / 2 ? 'bottom' : 'top'
+  }
+}
+
+async function updateTaskField(taskId, updates) {
+  try {
+    const { error: updateError } = await supabase
+      .from('tasks')
+      .update(updates)
+      .eq('id', taskId)
+
+    if (updateError) throw updateError
+  } catch (err) {
+    console.error('Error updating task:', err)
+    error.value = err.message
+  }
+}
+
+function toggleComplete(task) {
+  task.completed = !task.completed
+  updateTaskField(task.id, { completed: task.completed }) // ✅
+  emit('complete-task', task)
+}
+
+function togglePin(task) {
+  task.pinned = !task.pinned
+  updateTaskField(task.id, { pinned: task.pinned })
 }
 
 function flagClass(priority) {
@@ -55,56 +117,43 @@ function flagClass(priority) {
   }
 }
 
-const localEditText = ref(props.editText)
-watch(() => props.editText, (val) => {
-  localEditText.value = val
-})
+function editTaskTitle(task, newText) {
+  task.text = newText
+  updateTaskField(task.id, { title: newText })
+}
+
+function editTaskDueDate(task, newDate) {
+  task.dueDate = newDate
+  updateTaskField(task.id, { due_date: newDate })
+}
+
+async function deleteTask(taskId) {
+  try {
+    const { error: deleteError } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
+
+    if (deleteError) throw deleteError
+
+    tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== taskId)
+  } catch (err) {
+    console.error('Error deleting task:', err)
+    error.value = err.message
+  }
+}
 
 function handleSelectTag(task, tag) {
   task.tagId = tag ? tag.id : null
-
-  const index = tasksForDraggableMutable.value.findIndex(t => t.id === task.id)
-  if (index !== -1) {
-    tasksForDraggableMutable.value[index] = { ...task }
-  }
-
-  emit('update:tasks', tasksForDraggableMutable.value)
-
-  localStorage.setItem('myTasks', JSON.stringify(tasksForDraggableMutable.value))
+  updateTaskField(task.id, { tag_id: task.tagId })
 }
 
-function handleUpdateTag(updatedTag) {
-  const index = tagsList.value.findIndex(t => t.id === updatedTag.id)
-  if (index !== -1) {
-    tagsList.value[index] = { ...updatedTag }
-  } else {
-    tagsList.value.push(updatedTag)
-  }
-  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
-}
-
-function handleDeleteTag(id) {
-  tagsList.value = tagsList.value.filter(t => t.id !== id)
-  localStorage.setItem('myTags', JSON.stringify(tagsList.value))
-}
-
-onMounted(() => {
-  const savedTasks = JSON.parse(localStorage.getItem('myTasks')) || []
-  if (savedTasks.length > 0) {
-    tasksForDraggableMutable.value = savedTasks
-  } else {
-    tasksForDraggableMutable.value = [...props.tasks]
-  }
-})
-onMounted(() => {
-  const savedTags = JSON.parse(localStorage.getItem('myTags')) || []
-  if (savedTags.length > 0) {
-    tagsList.value = savedTags
-  }
-})
+onMounted(fetchTasks)
 </script>
 
 <template>
+    <div v-if="loading" class="text-gray-500 mb-2">Loading tasks...</div>
+    <div v-if="error" class="text-red-500 mb-2">{{ error }}</div>
     <draggable 
     v-model="tasksForDraggableMutable" 
     item-key="id" 
@@ -117,19 +166,23 @@ onMounted(() => {
     >
     <template #item="{ element: t }">
       <div v-if="t" :key="t.id" class="flex items-center">
-        <button class="drag-handle icon-btn"><i class='bx bx-menu text-2xl'></i></button>
-        <button @click="$emit('complete-task', t)"><i class='bx bx-checkbox checkbox'></i></button>
+        <button class="drag-handle icon-btn">
+          <i class='bx bx-menu text-2xl'></i>
+        </button>
+        <button @click="toggleComplete(t)">
+          <i class='bx bx-checkbox checkbox'></i>
+        </button>
         <div class="task">
           <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
             <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
             <input 
             v-else 
-            v-model="localEditText" 
+            v-model="t.text" 
             class="w-full bg-transparent outline-none border-none focus:ring-0"
-            @keyup.enter="$emit('edit-save', t, localEditText)"
-            @blur="$emit('edit-save', t, localEditText)" 
-            ref="editInput"
+            @keyup.enter="$emit('edit-save', t, t.text)"
+            @blur="editTaskTitle(t, t.text)" 
+            :ref="el => { if (t.id === editID) editInput.value = el }"
             />
           </div>
           <div class="max-w-[50%] flex items-center gap-3">

@@ -1,31 +1,94 @@
 <script setup>
-import { supabase } from '../../supabase/supabase'
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
-import TaskList from './ContentLayout.vue/TaskList.vue'
-import Taskshuffle from './Taskshuffle.vue'
-import Rightcontent from './ContentLayout.vue/Rightcontent.vue'
-import Createtask from './ContentLayout.vue/Createtask.vue'
-import CompletedTasks from './ContentLayout.vue/Completetask.vue'
-import Emptytask from './ContentLayout.vue/Emptytask.vue'
-import Trashpage from './ContentLayout.vue/Trashpage.vue'
+import { supabase } from '../../supabase/supabase'
 
-//state
+import Createtask from './ContentLayout/Createtask.vue'
+import TaskList from './ContentLayout/TaskList.vue'
+import CompletedTasks from './ContentLayout/Completetask.vue'
+import Rightcontent from './ContentLayout/Rightcontent.vue'
+
+import Taskshuffle from './Taskshuffle.vue'
+import Emptytask from './ContentLayout/Emptytask.vue'
+import Trashpage from './ContentLayout/Trashpage.vue'
+
 const tasks = ref([])
+const loading = ref(false)
+
+const emit = defineEmits(['selectTag'])
+
+async function fetchTasks() {
+  loading.value = true
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .order('id', { ascending: false })
+
+  if (!error) {
+    tasks.value = data
+  } else {
+    console.error(error)
+  }
+  loading.value = false
+}
+
+function handleTaskAdded(newTask) {
+  tasks.value.unshift(newTask)
+}
+
+function mapTask(task) {
+  return {
+    id: task.id,
+    title: task.title,
+    dueDate: task.due_date,
+    completed: task.completed,
+    pinned: task.pinned,
+    priority: task.priority,
+    tagId: task.tag_id
+  }
+}
+
+async function completeTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ completed: true }) 
+    .eq('id', task.id)
+    .select()
+
+  if (!error) {
+    tasks.value = tasks.value.filter(t => t.id !== task.id)
+    completedTasks.value.push(mapTask(data[0]))
+  }
+}
+
+async function uncompleteTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ completed: false })
+    .eq('id', task.id)
+    .select()
+
+  if (!error) {
+    completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
+    tasks.value.push(mapTask(data[0]))
+  }
+}
+
+function edit(task) {
+  editID.value = task.id
+  editText.value = task.text
+}
+
+onMounted(fetchTasks)
+//state
 const completedTasks = ref([])
 const showShuffle = ref(false)
 const tags = ref([])
-
-//Edit State
 const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
-
-
-// Sort State
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
 const sortByNone = ref(true)
-
 const trashTasks = ref([])
 
 
@@ -68,65 +131,13 @@ function saveTasks() {
   localStorage.setItem('myTags', JSON.stringify(tags.value || []))
 }
 
-async function fetchTasks() {
-  // ดึง task ปกติ (ยังไม่ complete, ไม่ trashed)
-  const { data: incomplete, error: err1 } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('is_completed', false)
-    .eq('is_trashed', false)
-
-  // ดึง completed tasks
-  const { data: completed, error: err2 } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('is_completed', true)
-    .eq('is_trashed', false)
-
-  // ดึง trash
-  const { data: trash, error: err3 } = await supabase
-    .from('tasks')
-    .select('*')
-    .eq('is_trashed', true)
-
-  if (err1 || err2 || err3) console.error(err1 || err2 || err3)
-
-  tasks.value = incomplete || []
-  completedTasks.value = completed || []
-  trashTasks.value = trash || []
-
-  // ดึง tags
-  const { data: allTags } = await supabase.from('tags').select('*')
-  tags.value = allTags || []
-}
-
-
-
-onMounted(() => {
-  const savedTags = localStorage.getItem('myTags')
-  tags.value = savedTags ? JSON.parse(savedTags) : []
-  fetchTasks()
-})
-
-
-async function addTask(newTask) {
-  // newTask ต้องมี title, list_id, tag_id, due_date (option)
-  const { data, error } = await supabase
-    .from('tasks')
-    .insert([newTask])
-    .select()
-
-  if (error) console.error(error)
-  else tasks.value.push(...data)
-}
-
 async function deleteTask(taskId) {
   const t = tasks.value.find(x => x.id === taskId) || completedTasks.value.find(x => x.id === taskId)
   if (!t) return
 
   const { data, error } = await supabase
     .from('tasks')
-    .update({ is_trashed: true })
+    .update({ is_trashed: true }) 
     .eq('id', taskId)
     .select()
 
@@ -167,32 +178,6 @@ function editDate(task, newDate) {
   task.dueDate = newDate
   saveTasks()
   fetchTasks()
-}
-
-async function completeTask(task) {
-  const { data, error } = await supabase
-    .from('tasks')
-    .update({ is_completed: true })
-    .eq('id', task.id)
-    .select()
-  
-  if (!error) {
-    tasks.value = tasks.value.filter(t => t.id !== task.id)
-    completedTasks.value.push(data[0])
-  }
-}
-
-async function uncompleteTask(task) {
-  const { data, error } = await supabase
-    .from('tasks')
-    .update({ is_completed: false })
-    .eq('id', task.id)
-    .select()
-  
-  if (!error) {
-    completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
-    tasks.value.push(data[0])
-  }
 }
 
 function sortByDateFn(a, b) {
@@ -262,13 +247,13 @@ async function restoreTasks() {
   for (let task of toRestore) {
     const { data, error } = await supabase
       .from('tasks')
-      .update({ is_trashed: false })
+      .update({ is_trashed: false }) // ✅
       .eq('id', task.id)
       .select()
 
     if (!error) {
       trashTasks.value = trashTasks.value.filter(t => t.id !== task.id)
-      if (task.is_completed) completedTasks.value.push(data[0])
+      if (task.completed) completedTasks.value.push(data[0])
       else tasks.value.push(data[0])
     }
   }
@@ -312,12 +297,6 @@ const tasksForDraggableMutable = computed({
     saveTasks()
   }
 })
-
-const lists = ref([])
-onMounted(() => {
-  const savedLists = localStorage.getItem('myLists')
-  if (savedLists) lists.value = JSON.parse(savedLists)
-})
 </script>
 
 <template>
@@ -339,7 +318,8 @@ onMounted(() => {
       </div>
       <!-- Create Task -->
       <div v-if="isShowDatepage()">
-        <Createtask @add-task="addTask"/>
+        <Createtask @add-task="handleTaskAdded"/>
+        <div v-if="loading" class="mt-4 text-gray-500">Loading tasks...</div>
       </div>
     </div>
     <!-- DatePage -->
