@@ -6,7 +6,6 @@
   <body class="w-screen h-screen flex flex-row bg-gray-100">
     <!-- Sidebar -->
     <NavBar />
-
     <!-- Main Content -->
     <div class="flex-1 p-8 flex justify-center items-center">
       <!-- Calendar Container -->
