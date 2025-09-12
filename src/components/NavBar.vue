@@ -39,15 +39,16 @@
         </div>
 
         <!-- Pomodoro -->
-        <div class="flex items-center">
+       <div class="flex items-center">
           <router-link to="/Pomodoro" exact-active-class="menu_active" class="relative inline-flex group w-fit">
             <i class='menu bx bxs-alarm'></i>
-            <span class="absolute left-8 px-2 py-1 text-sm text-white bg-black rounded-md 
-                         opacity-0 group-hover:opacity-100 transition pointer-events-none">
+            <span class="tooltip absolute left-8 px-2 py-1 text-sm text-white bg-black rounded-md 
+                       opacity-0 group-hover:opacity-100 transition pointer-events-none z-[1000]">
               Pomodoro
             </span>
           </router-link>
         </div>
+
 
         <!-- Matrix -->
         <div class="flex items-center">
@@ -115,5 +116,11 @@ function toggleSearch() {
 }
 .menu_active .menu {
   @apply text-white;
+}
+.tooltip {
+  z-index: 1000;
+}
+.group:hover .tooltip {
+  z-index: 1000;
 }
 </style>
