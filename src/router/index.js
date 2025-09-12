@@ -6,6 +6,7 @@ import Resetpassword from '@/views/Register/Reset_Password.vue'
 import Inbox from '@/views/Task/Inbox.vue'
 import Pomodoro from '@/views/Pomodoro.vue'
 import Calender from '@/views/Calender.vue'
+import CalenderMonth from '@/components/Calender/CalenderMonth.vue'
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/Login' , name: 'Login', component: Login},
@@ -13,7 +14,7 @@ const routes = [
   { path: '/Signup' , name: 'Signup', component: Signup},
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
   { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
-  { path: '/Calender' , name: 'Calender', component: Calender}
+  { path: '/Calender' , name: 'Calender', component: CalenderMonth},
 ]
 
 const router = createRouter({
