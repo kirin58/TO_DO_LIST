@@ -180,51 +180,41 @@ function editDate(task, newDate) {
   fetchTasks()
 }
 
-function sortByDateFn(a, b) {
-  if (!a.dueDate && !b.dueDate) return 0
-  if (!a.dueDate) return 1
-  if (!b.dueDate) return -1
-  return new Date(a.dueDate) - new Date(b.dueDate)
+// function sortByDateFn(a, b) {
+//   if (!a.dueDate && !b.dueDate) return 0
+//   if (!a.dueDate) return 1
+//   if (!b.dueDate) return -1
+//   return new Date(a.dueDate) - new Date(b.dueDate)
+// }
+
+// function sortByPriorityFn(a, b) {
+//   const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+//   return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+// }
+
+// function toggleShuffle() {
+//   showShuffle.value = !showShuffle.value
+// }
+
+// function handleSelectType(type) {
+//   sortByDate.value = type === 'Date'
+//   sortByPriority.value = type === 'Priority'
+//   sortByNone.value = type === 'None'
+
+//   let sorted = [...tasksForDraggable.value]
+
+//   if (sortByDate.value) sorted.sort(sortByDateFn)
+//   else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
+// }
+
+function sortPinned(tasksArray) {
+  return [...tasksArray].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return 0
+  })
 }
 
-function sortByPriorityFn(a, b) {
-  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
-}
-
-function toggleShuffle() {
-  showShuffle.value = !showShuffle.value
-}
-
-function handleSelectType(type) {
-  sortByDate.value = type === 'Date'
-  sortByPriority.value = type === 'Priority'
-  sortByNone.value = type === 'None'
-
-  let sorted = [...tasksForDraggable.value]
-
-  if (sortByDate.value) sorted.sort(sortByDateFn)
-  else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
-}
-
-
-function setPriority(task, color) {
-  task.priority = color
-  saveTasks()
-  fetchTasks()
-}
-
-function togglePin(task) {
-  const index = tasks.value.findIndex(t => t.id === task.id);
-  if (index !== -1) {
-    tasks.value[index] = { ...tasks.value[index], pinned: !tasks.value[index].pinned };
-    tasks.value.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return 0;
-    });
-  }
-}
 
 function handleSelectTag(task, tag) {
   const taskIndex = tasks.value.findIndex(t => t.id === task.id)
@@ -287,8 +277,14 @@ function isTaskInMode(task) {
 const tasksForDraggableMutable = computed({
   get() {
     let result = tasks.value.filter(t => isTaskInMode(t))
-    if (sortByDate.value) result.sort(sortByDateFn)
-    else if (sortByPriority.value) result.sort(sortByPriorityFn)
+
+    // sort pinned บนสุด
+    result.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
+      return 0
+    })
+
     return result
   },
   set(newVal) {
@@ -297,6 +293,7 @@ const tasksForDraggableMutable = computed({
     saveTasks()
   }
 })
+
 </script>
 
 <template>
@@ -333,10 +330,9 @@ const tasksForDraggableMutable = computed({
           :tasks="tasksForDraggableMutable" 
           :editID="editID" 
           :editText="editText" 
-          :lists="lists" 
           :tags="tags" 
-          @pin-task="togglePin" 
-          @update:tasks="tasks = $event" 
+          @pin-task="editTaskPinned"
+          @update:tasks="tasksForDraggableMutable = $event" 
           @edit-task="edit" 
           @edit-date="editDate" 
           @edit-save="editSave" 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch , onMounted } from 'vue'
+import { ref, onUnmounted , onMounted } from 'vue'
 import { supabase } from '../../../supabase/supabase'
 import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
@@ -23,13 +23,14 @@ const emit = defineEmits([
   'select-tag'
 ])
 
-const taskMenu = ref(null)
-const popupPosition = ref('bottom')
-const editInput = ref(null)
-const tagsList = ref([...props.tags])
 const tasksForDraggableMutable = ref([])
 const loading = ref(false)
 const error = ref(null)
+const popupPosition = ref('bottom')
+const taskMenu = ref(null)
+const editInput = ref(null)
+const tagsList = ref([...props.tags])
+
 
 async function fetchTasks() {
   loading.value = true
@@ -102,11 +103,6 @@ function toggleComplete(task) {
   emit('complete-task', task)
 }
 
-function togglePin(task) {
-  task.pinned = !task.pinned
-  updateTaskField(task.id, { pinned: task.pinned })
-}
-
 function flagClass(priority) {
   switch (priority) {
     case 'red': return 'bx bx-flag text-red-500 text-xl'
@@ -127,28 +123,85 @@ function editTaskDueDate(task, newDate) {
   updateTaskField(task.id, { due_date: newDate })
 }
 
-async function deleteTask(taskId) {
-  try {
-    const { error: deleteError } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId)
-
-    if (deleteError) throw deleteError
-
-    tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== taskId)
-  } catch (err) {
-    console.error('Error deleting task:', err)
-    error.value = err.message
-  }
+function editTaskPriority(task, priority) {
+  task.priority = priority
+  updateTaskField(task.id, { priority })
 }
 
-function handleSelectTag(task, tag) {
-  task.tagId = tag ? tag.id : null
-  updateTaskField(task.id, { tag_id: task.tagId })
+function editTaskPinned(task) {
+  task.pinned = !task.pinned
+  updateTaskField(task.id, { pinned: task.pinned })
+  emit('update:tasks', tasks.value) // ⚡️ ทำให้ pinned sort ใหม่
 }
 
-onMounted(fetchTasks)
+// async function deleteTask(taskId) {
+//   try {
+//     const { error: deleteError } = await supabase
+//       .from('tasks')
+//       .delete()
+//       .eq('id', taskId)
+
+//     if (deleteError) throw deleteError
+
+//     tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== taskId)
+//   } catch (err) {
+//     console.error('Error deleting task:', err)
+//     error.value = err.message
+//   }
+// }
+
+// function handleSelectTag(task, tag) {
+//   task.tagId = tag ? tag.id : null
+//   updateTaskField(task.id, { tag_id: task.tagId })
+// }
+
+let channel = null
+
+onMounted(async () => {
+  await fetchTasks()
+
+  channel = supabase
+    .channel('tasks-channel')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'tasks' },
+      async (payload) => {
+        console.log('Realtime payload:', payload)
+
+        if (payload.eventType === 'INSERT') {
+          tasksForDraggableMutable.value.unshift({
+            id: payload.new.id,
+            text: payload.new.title,
+            completed: payload.new.completed,
+            pinned: payload.new.pinned,
+            priority: payload.new.priority,
+            dueDate: payload.new.due_date,
+            tagId: payload.new.tag_id
+          })
+        } else if (payload.eventType === 'UPDATE') {
+          const idx = tasksForDraggableMutable.value.findIndex(t => t.id === payload.new.id)
+          if (idx !== -1) {
+            tasksForDraggableMutable.value[idx] = {
+              id: payload.new.id,
+              text: payload.new.title,
+              completed: payload.new.completed,
+              pinned: payload.new.pinned,
+              priority: payload.new.priority,
+              dueDate: payload.new.due_date,
+              tagId: payload.new.tag_id
+            }
+          }
+        } else if (payload.eventType === 'DELETE') {
+          tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== payload.old.id)
+        }
+      }
+    )
+    .subscribe()
+})
+
+onUnmounted(() => {
+  if (channel) supabase.removeChannel(channel)
+})
 </script>
 
 <template>
@@ -203,9 +256,9 @@ onMounted(fetchTasks)
                 class="absolute z-50 right-0" :class="[popupPosition === 'top' ? 'bottom-full mb-2' : 'top-full mt-2']">
                 <TaskPopup 
                 v-model="t.dueDate"
-                @update:modelValue="$emit('edit-date', t, $event)"
-                @pin-task="$emit('pin-task', t)"
-                @set-priority="$emit('set-priority', t, $event)"
+                @update:modelValue="(newDate) => editTaskDueDate(t, newDate)"
+                @pin-task="() => editTaskPinned(t)"
+                @set-priority="(priority) => editTaskPriority(t, priority)"
                 @delete="$emit('delete-task', t.id)"
                 :tags="tagsList" 
                 @select-tag="(tag) => handleSelectTag(t, tag)"
