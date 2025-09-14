@@ -1,5 +1,6 @@
 <script setup>
 import {ref,onMounted , nextTick, watch} from 'vue'
+import { supabase } from '../../supabase/supabase'
 
 const props = defineProps({ 
     tags: Array,
@@ -9,18 +10,9 @@ const props = defineProps({
 
 const emit = defineEmits(['delete-tag','update-tag','select'])
 
-const localtags = ref([])
 const editingId = ref(null)
 const editText = ref('')
 const selectedTagId = ref(null) 
-
-watch(() => props.tags, (newVal) => {
-  localtags.value = [...newVal]
-}, { immediate: true })
-
-function deleteTags(id) {
-    emit('delete-tag', id)
-}
 
 function startEdit(tag) {
   editingId.value = tag.id
@@ -31,29 +23,27 @@ function startEdit(tag) {
   })
 }
 
-function saveEdit(tag) {
+async function saveEdit(tag) {
   if (!editText.value.trim()) return
+
+  const { data, error } = await supabase
+    .from('tags')
+    .update({ text: editText.value.trim() })
+    .eq('id', tag.id)
+    .select()
+  if (error) return console.error(error)
   
-  const index = localtags.value.findIndex(t => t.id === tag.id)
-  if (index !== -1) {
-    localtags.value[index].text = editText.value.trim()
-
-    localStorage.setItem('myTags', JSON.stringify(localtags.value))
-    emit('update-tag', localtags.value[index])
-  }
-
+  emit('update-tag', data[0])
   editingId.value = null
   editText.value = ''
 }
 
-onMounted(() => {
-    const saved = JSON.parse(localStorage.getItem('myTags')) || []
-    if (saved.length > 0) {
-        localtags.value = saved
-    } else {
-        localtags.value = [...props.tags]
-    }
-})
+async function deleteTags(id) {
+  const { error } = await supabase.from('tags').delete().eq('id', id)
+  if (error) return console.error(error)
+  emit('delete-tag', id)
+}
+
 function handleSelect(tag) {
   if (selectedTagId.value === tag.id) {
     selectedTagId.value = null
