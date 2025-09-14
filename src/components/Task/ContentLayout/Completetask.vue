@@ -1,7 +1,6 @@
 <script setup>
 import { ref, defineEmits, defineProps,watch } from 'vue'
 import draggable from 'vuedraggable'
-import Emptytask from './Emptytask.vue'
 
 //props
 const props = defineProps({
@@ -14,7 +13,11 @@ const props = defineProps({
 //state
 const emit = defineEmits(['saveTasks','uncomplete-task'])
 const showCompleted = ref(true)
+const localCompletedTasks = ref([...props.completedTasks])
 
+watch(() => props.completedTasks, (newVal) => {
+  localCompletedTasks.value = [...newVal]
+}, { deep: true })
 
 //function
 function uncompleteTask(task) {
@@ -33,7 +36,7 @@ function onDragEnd() {
         </div>
         <div v-show="showCompleted" class="flex-1 overflow-y-auto ">
             <draggable 
-            v-model="props.completedTasks" 
+            v-model="localCompletedTasks" 
             item-key="id" 
             class="space-y-2" 
             handle=".drag-handle"   
@@ -50,7 +53,7 @@ function onDragEnd() {
                     <button  @click="uncompleteTask(t)">
                         <i class='bx bx-checkbox-checked checkbox'></i>
                     </button>
-                    <span class="line-through text-lg">{{ t.text }}</span>
+                    <span class="line-through text-lg">{{ t.title }}</span>
                     </div>
                 </template>
             </draggable>
