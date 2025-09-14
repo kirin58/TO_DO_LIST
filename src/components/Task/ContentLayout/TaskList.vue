@@ -46,6 +46,7 @@ async function fetchTasks() {
         priority,
         due_date,
         tag_id,
+        is_trashed,
         updated_at
       `)
       .order('id', { ascending: false })
@@ -53,14 +54,16 @@ async function fetchTasks() {
     if (fetchError) throw fetchError
 
     // Map ให้ field สอดคล้องกับ UI เดิม
-    tasksForDraggableMutable.value = data.map(task => ({
-      id: task.id,
-      text: task.title,          
-      completed: task.completed, 
-      pinned: task.pinned,
-      priority: task.priority,
-      dueDate: task.due_date,    
-      tagId: task.tag_id         
+    tasksForDraggableMutable.value = data
+      .filter(task => !task.completed && !task.is_trashed) // กรองเฉพาะงานที่ active
+      .map(task => ({
+        id: task.id,
+        text: task.title,
+        completed: task.completed,
+        pinned: task.pinned,
+        priority: task.priority,
+        dueDate: task.due_date,
+        tagId: task.tag_id
     }))
   } catch (err) {
     console.error('Error fetching tasks:', err)
@@ -160,28 +163,34 @@ let channel = null
 onMounted(async () => {
   await fetchTasks()
 
-  channel = supabase
+  const channel = supabase
     .channel('tasks-channel')
     .on(
       'postgres_changes',
       { event: '*', schema: 'public', table: 'tasks' },
       async (payload) => {
         console.log('Realtime payload:', payload)
-
         if (payload.eventType === 'INSERT') {
-          tasksForDraggableMutable.value.unshift({
-            id: payload.new.id,
-            text: payload.new.title,
-            completed: payload.new.completed,
-            pinned: payload.new.pinned,
-            priority: payload.new.priority,
-            dueDate: payload.new.due_date,
-            tagId: payload.new.tag_id
-          })
+          if (!payload.new.completed && !payload.new.is_trashed) {
+            tasksForDraggableMutable.value.unshift({
+              id: payload.new.id,
+              text: payload.new.title,
+              completed: payload.new.completed,
+              pinned: payload.new.pinned,
+              priority: payload.new.priority,
+              dueDate: payload.new.due_date,
+              tagId: payload.new.tag_id
+            })
+          }
         } else if (payload.eventType === 'UPDATE') {
           const idx = tasksForDraggableMutable.value.findIndex(t => t.id === payload.new.id)
-          if (idx !== -1) {
-            tasksForDraggableMutable.value[idx] = {
+
+          if (payload.new.completed || payload.new.is_trashed) {
+            // ถ้า complete หรือไป trash → เอาออกจาก list
+            if (idx !== -1) tasksForDraggableMutable.value.splice(idx, 1)
+          } else {
+            // ยัง active → update หรือ add เข้าใหม่
+            const updatedTask = {
               id: payload.new.id,
               text: payload.new.title,
               completed: payload.new.completed,
@@ -190,13 +199,20 @@ onMounted(async () => {
               dueDate: payload.new.due_date,
               tagId: payload.new.tag_id
             }
+
+            if (idx !== -1) {
+              tasksForDraggableMutable.value[idx] = updatedTask
+            } else {
+              tasksForDraggableMutable.value.unshift(updatedTask)
+            }
           }
         } else if (payload.eventType === 'DELETE') {
-          tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== payload.old.id)
+          tasksForDraggableMutable.value =
+            tasksForDraggableMutable.value.filter(t => t.id !== payload.old.id)
         }
       }
     )
-    .subscribe()
+  .subscribe()
 })
 
 onUnmounted(() => {

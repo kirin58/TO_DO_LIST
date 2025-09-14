@@ -53,7 +53,7 @@ function onDragEnd() {
                     <button  @click="uncompleteTask(t)">
                         <i class='bx bx-checkbox-checked checkbox'></i>
                     </button>
-                    <span class="line-through text-lg">{{ t.text }}</span>
+                    <span class="line-through text-lg">{{ t.title }}</span>
                     </div>
                 </template>
             </draggable>

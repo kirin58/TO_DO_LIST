@@ -23,8 +23,10 @@ async function fetchTasks() {
     .select('*')
     .order('id', { ascending: false })
 
-  if (!error) {
-    tasks.value = data
+  if (!error && data) {
+    tasks.value = data.filter(t => !t.completed && !t.is_trashed)
+    completedTasks.value = data.filter(t => t.completed && !t.is_trashed)
+    trashTasks.value = data.filter(t => t.is_trashed)
   } else {
     console.error(error)
   }
@@ -237,7 +239,7 @@ async function restoreTasks() {
   for (let task of toRestore) {
     const { data, error } = await supabase
       .from('tasks')
-      .update({ is_trashed: false }) // ✅
+      .update({ is_trashed: false }) 
       .eq('id', task.id)
       .select()
 
@@ -249,10 +251,28 @@ async function restoreTasks() {
   }
 }
 
-function deleteForever() {
+async function deleteForever() {
+  // เลือก task ที่ถูกติ๊กเพื่อลบ
+  const toDelete = trashTasks.value.filter(t => t.isDeleted)
+
+  if (toDelete.length === 0) return
+
+  // ลบจาก Supabase
+  const { data, error } = await supabase
+    .from('tasks')
+    .delete()
+    .in('id', toDelete.map(t => t.id))
+
+  if (error) {
+    console.error('Error deleting tasks forever:', error)
+    return
+  }
+
+  // ลบออกจาก trashTasks ใน frontend
   trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
   saveTasks()
 }
+
 
 //mode
 
@@ -288,7 +308,8 @@ const tasksForDraggableMutable = computed({
     return result
   },
   set(newVal) {
-    const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
+    const otherTasks = tasks.value.filter(
+      t => t.completed || !isTaskInMode(t))
     tasks.value = [...newVal, ...otherTasks]
     saveTasks()
   }
