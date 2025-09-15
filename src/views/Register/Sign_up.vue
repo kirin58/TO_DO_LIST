@@ -10,12 +10,12 @@
       <p class="text-sm text-black mt-5 mb-5">
         Already have an account?
       </p>
-      <router-link to="#">
+      <router-link to="/Login">
         <button class="font-medium w-full flex items-center justify-center bg-orange-300 hover:bg-orange-200 text-black py-2 px-5 rounded-lg"
         >
           Sign In
         </button>
-    </router-link>
+      </router-link>
     </div>
 
     <!-- Card -->
