@@ -1,7 +1,8 @@
 <script setup>
 import {ref,onMounted,watch} from 'vue'
+import {supabase} from '../../supabase/supabase'
 import tagcomp from '../tags/tagcomp.vue';
-import Tagpopup from '../tags/tagpopup.vue';
+import tagpopup from '../tags/tagpopup.vue';
 
 const props = defineProps({
     tags: Array
@@ -12,25 +13,27 @@ const tags = ref([])
 const showTagInput = ref(false)
 const showTag = ref(false)
 
-function handleAddTag(newTag){
-    tags.value.push({ id: Date.now(), text: newTag })
-    localStorage.setItem('myTags', JSON.stringify(tags.value))
-}
-function updateTag(updatedtag) {
-  const index = tags.value.findIndex(t => t.id === updatedtag.id)
-  if (index !== -1) {
-    tags.value[index] = updatedtag
-    localStorage.setItem('myTags', JSON.stringify(tags.value))
-  }
-}
-function deleteTags(id){
-    tags.value = tags.value.filter(t => t.id !== id) 
-    localStorage.setItem('myTags', JSON.stringify(tags.value))
+async function handleAddTag(newTag) {
+  const { data, error } = await supabase.from('tags').insert([{ text: newTag }]).select()
+  if (!error && data.length) tags.value.push(data[0])
 }
 
-onMounted(() => {
- const savedTags = localStorage.getItem('myTags')
-  if (savedTags) tags.value = JSON.parse(savedTags)
+function updateTag(updatedtag) {
+  const index = tags.value.findIndex(t => t.id === updatedtag.id)
+  if (index !== -1) tags.value[index] = updatedtag
+}
+
+function deleteTags(id) {
+  tags.value = tags.value.filter(t => t.id !== id)
+}
+
+onMounted(async () => {
+  const { data, error } = await supabase.from('tags').select('*')
+  if (error) {
+    console.error('Error fetching tags:', error)
+  } else {
+    tags.value = data
+  }
 })
 </script>
 <template>
@@ -68,7 +71,7 @@ onMounted(() => {
                 @closeInput="showTagInput = false" 
                 @addTag="handleAddTag"
                 />
-                <Tagpopup 
+                <tagpopup 
                 v-if="showTag" 
                 :tags="tags" 
                 :tagbar="true" 

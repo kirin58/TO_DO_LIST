@@ -1,30 +1,96 @@
 <script setup>
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
-import TaskList from './ContentLayout.vue/TaskList.vue'
-import Taskshuffle from './Taskshuffle.vue'
-import Rightcontent from './ContentLayout.vue/Rightcontent.vue'
-import Createtask from './ContentLayout.vue/Createtask.vue'
-import CompletedTasks from './ContentLayout.vue/Completetask.vue'
-import Emptytask from './ContentLayout.vue/Emptytask.vue'
-import Trashpage from './ContentLayout.vue/Trashpage.vue'
+import { supabase } from '../../supabase/supabase'
 
-//state
+import Createtask from './ContentLayout/Createtask.vue'
+import TaskList from './ContentLayout/TaskList.vue'
+import CompletedTasks from './ContentLayout/Completetask.vue'
+import Rightcontent from './ContentLayout/Rightcontent.vue'
+
+import Taskshuffle from './Taskshuffle.vue'
+import Emptytask from './ContentLayout/Emptytask.vue'
+import Trashpage from './ContentLayout/Trashpage.vue'
+
 const tasks = ref([])
+const loading = ref(false)
+
+const emit = defineEmits(['selectTag'])
+
+async function fetchTasks() {
+  loading.value = true
+  const { data, error } = await supabase
+    .from('tasks')
+    .select('*')
+    .order('id', { ascending: false })
+
+  if (!error && data) {
+    tasks.value = data.filter(t => !t.completed && !t.is_trashed)
+    completedTasks.value = data.filter(t => t.completed && !t.is_trashed)
+    trashTasks.value = data.filter(t => t.is_trashed)
+  } else {
+    console.error(error)
+  }
+  loading.value = false
+}
+
+function handleTaskAdded(newTask) {
+  tasks.value.unshift(newTask)
+}
+
+function mapTask(task) {
+  return {
+    id: task.id,
+    title: task.title,
+    dueDate: task.due_date,
+    completed: task.completed,
+    pinned: task.pinned,
+    priority: task.priority,
+    tagId: task.tag_id
+  }
+}
+
+async function completeTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ completed: true }) 
+    .eq('id', task.id)
+    .select()
+
+  if (!error) {
+    tasks.value = tasks.value.filter(t => t.id !== task.id)
+    completedTasks.value.push(mapTask(data[0]))
+  }
+}
+
+async function uncompleteTask(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ completed: false })
+    .eq('id', task.id)
+    .select()
+
+  if (!error) {
+    completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
+    tasks.value.push(mapTask(data[0]))
+  }
+}
+
+function edit(task) {
+  editID.value = task.id
+  editText.value = task.text
+}
+
+onMounted(fetchTasks)
+//state
 const completedTasks = ref([])
 const showShuffle = ref(false)
 const tags = ref([])
-
-//Edit State
 const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
-
-
-// Sort State
 const sortByDate = ref(false)
 const sortByPriority = ref(false)
 const sortByNone = ref(true)
-
 const trashTasks = ref([])
 
 
@@ -67,53 +133,40 @@ function saveTasks() {
   localStorage.setItem('myTags', JSON.stringify(tags.value || []))
 }
 
-function fetchTasks() {
-  const saved = localStorage.getItem('tasks');
-  if (saved) {
-    const parsed = JSON.parse(saved);
-    tasks.value = parsed.incomplete || [];
-    completedTasks.value = parsed.complete || [];
-    trashTasks.value = parsed.trash || [];
-  }
-}
-
-
-onMounted(() => {
-  const savedTags = localStorage.getItem('myTags')
-  tags.value = savedTags ? JSON.parse(savedTags) : []
-  fetchTasks()
-})
-
-
-function addTask(newTask) {
-  tasks.value.push(newTask)
-  saveTasks()
-}
-
-function deleteTask(taskId) {
+async function deleteTask(taskId) {
   const t = tasks.value.find(x => x.id === taskId) || completedTasks.value.find(x => x.id === taskId)
-  if (t) {
-    trashTasks.value.push({...t,deletedAt: new Date()})
+  if (!t) return
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ is_trashed: true }) 
+    .eq('id', taskId)
+    .select()
+
+  if (!error) {
+    tasks.value = tasks.value.filter(t => t.id !== taskId)
+    completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
+    trashTasks.value.push(data[0])
   }
-  tasks.value = tasks.value.filter(t => t.id !== taskId)
-  completedTasks.value = completedTasks.value.filter(t => t.id !== taskId)
-  saveTasks()
 }
 
-function edit(t) {
-  editID.value = t.id
-  editText.value = t.text
-}
-function editSave(task, newText, cancel = false) {
+
+async function editSave(task, newText, cancel = false) {
   if (cancel || newText.trim() === '') {
     editID.value = null
     editText.value = ''
     return
   }
-  task.text = newText
+
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ title: newText })
+    .eq('id', task.id)
+    .select()
+
+  if (!error) Object.assign(task, data[0])
   editID.value = null
   editText.value = ''
-  saveTasks()
 }
 
 watch(editID, async (newvalue) => {
@@ -129,74 +182,41 @@ function editDate(task, newDate) {
   fetchTasks()
 }
 
-function completeTask(task) {
-  tasks.value = tasks.value.filter(t => t.id !== task.id)
-  if (!completedTasks.value.find(t => t.id === task.id)) {
-    completedTasks.value.push(task)
-  }
-  saveTasks()  
-}
+// function sortByDateFn(a, b) {
+//   if (!a.dueDate && !b.dueDate) return 0
+//   if (!a.dueDate) return 1
+//   if (!b.dueDate) return -1
+//   return new Date(a.dueDate) - new Date(b.dueDate)
+// }
 
-function uncompleteTask(task) {
-  completedTasks.value = completedTasks.value.filter(t => t.id !== task.id)
-  if (!tasks.value.find(t => t.id === task.id)) {
-    tasks.value.push(task)
-  }
+// function sortByPriorityFn(a, b) {
+//   const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+//   return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+// }
 
-  tasks.value.sort((a, b) => {
+// function toggleShuffle() {
+//   showShuffle.value = !showShuffle.value
+// }
+
+// function handleSelectType(type) {
+//   sortByDate.value = type === 'Date'
+//   sortByPriority.value = type === 'Priority'
+//   sortByNone.value = type === 'None'
+
+//   let sorted = [...tasksForDraggable.value]
+
+//   if (sortByDate.value) sorted.sort(sortByDateFn)
+//   else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
+// }
+
+function sortPinned(tasksArray) {
+  return [...tasksArray].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1
     if (!a.pinned && b.pinned) return 1
     return 0
   })
-
-  saveTasks()
 }
 
-function sortByDateFn(a, b) {
-  if (!a.dueDate && !b.dueDate) return 0
-  if (!a.dueDate) return 1
-  if (!b.dueDate) return -1
-  return new Date(a.dueDate) - new Date(b.dueDate)
-}
-
-function sortByPriorityFn(a, b) {
-  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
-}
-
-function toggleShuffle() {
-  showShuffle.value = !showShuffle.value
-}
-
-function handleSelectType(type) {
-  sortByDate.value = type === 'Date'
-  sortByPriority.value = type === 'Priority'
-  sortByNone.value = type === 'None'
-
-  let sorted = [...tasksForDraggable.value]
-
-  if (sortByDate.value) sorted.sort(sortByDateFn)
-  else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
-}
-
-
-function setPriority(task, color) {
-  task.priority = color
-  saveTasks()
-  fetchTasks()
-}
-
-function togglePin(task) {
-  const index = tasks.value.findIndex(t => t.id === task.id);
-  if (index !== -1) {
-    tasks.value[index] = { ...tasks.value[index], pinned: !tasks.value[index].pinned };
-    tasks.value.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return 0;
-    });
-  }
-}
 
 function handleSelectTag(task, tag) {
   const taskIndex = tasks.value.findIndex(t => t.id === task.id)
@@ -213,28 +233,46 @@ function toggleselectTrash(){
   trashTasks.value.forEach(t => {t.isDeleted = selectTrash.value})
 }
 
-function restoreTasks() {
+async function restoreTasks() {
   const toRestore = trashTasks.value.filter(t => t.isDeleted)
 
-  if (toRestore.length > 0) {
-    toRestore.forEach(t => {
-      if (t.completed) {
-        completedTasks.value.push({ ...t, isDeleted: false })
-      } else {
-        tasks.value.push({ ...t, isDeleted: false })
-      }
-    })
+  for (let task of toRestore) {
+    const { data, error } = await supabase
+      .from('tasks')
+      .update({ is_trashed: false }) 
+      .eq('id', task.id)
+      .select()
 
-    trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
-
-    saveTasks()
+    if (!error) {
+      trashTasks.value = trashTasks.value.filter(t => t.id !== task.id)
+      if (task.completed) completedTasks.value.push(data[0])
+      else tasks.value.push(data[0])
+    }
   }
 }
 
-function deleteForever() {
+async function deleteForever() {
+  // เลือก task ที่ถูกติ๊กเพื่อลบ
+  const toDelete = trashTasks.value.filter(t => t.isDeleted)
+
+  if (toDelete.length === 0) return
+
+  // ลบจาก Supabase
+  const { data, error } = await supabase
+    .from('tasks')
+    .delete()
+    .in('id', toDelete.map(t => t.id))
+
+  if (error) {
+    console.error('Error deleting tasks forever:', error)
+    return
+  }
+
+  // ลบออกจาก trashTasks ใน frontend
   trashTasks.value = trashTasks.value.filter(t => !t.isDeleted)
   saveTasks()
 }
+
 
 //mode
 
@@ -259,22 +297,24 @@ function isTaskInMode(task) {
 const tasksForDraggableMutable = computed({
   get() {
     let result = tasks.value.filter(t => isTaskInMode(t))
-    if (sortByDate.value) result.sort(sortByDateFn)
-    else if (sortByPriority.value) result.sort(sortByPriorityFn)
+
+    // sort pinned บนสุด
+    result.sort((a, b) => {
+      if (a.pinned && !b.pinned) return -1
+      if (!a.pinned && b.pinned) return 1
+      return 0
+    })
+
     return result
   },
   set(newVal) {
-    const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
+    const otherTasks = tasks.value.filter(
+      t => t.completed || !isTaskInMode(t))
     tasks.value = [...newVal, ...otherTasks]
     saveTasks()
   }
 })
 
-const lists = ref([])
-onMounted(() => {
-  const savedLists = localStorage.getItem('myLists')
-  if (savedLists) lists.value = JSON.parse(savedLists)
-})
 </script>
 
 <template>
@@ -296,7 +336,8 @@ onMounted(() => {
       </div>
       <!-- Create Task -->
       <div v-if="isShowDatepage()">
-        <Createtask @add-task="addTask"/>
+        <Createtask @add-task="handleTaskAdded"/>
+        <div v-if="loading" class="mt-4 text-gray-500">Loading tasks...</div>
       </div>
     </div>
     <!-- DatePage -->
@@ -310,10 +351,9 @@ onMounted(() => {
           :tasks="tasksForDraggableMutable" 
           :editID="editID" 
           :editText="editText" 
-          :lists="lists" 
           :tags="tags" 
-          @pin-task="togglePin" 
-          @update:tasks="tasks = $event" 
+          @pin-task="editTaskPinned"
+          @update:tasks="tasksForDraggableMutable = $event" 
           @edit-task="edit" 
           @edit-date="editDate" 
           @edit-save="editSave" 

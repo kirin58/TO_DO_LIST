@@ -30,7 +30,7 @@ const emit = defineEmits(['toggleselectTrash', 'restoreTasks', 'deleteForever'])
         <button @click="t.isDeleted = !t.isDeleted">
           <i :class="t.isDeleted ? 'bx bx-checkbox-checked checkbox' : 'bx bx-checkbox checkbox'"></i>
         </button>
-        <span class="text-lg text-stone-500">{{ t.text }}</span>
+        <span class="text-lg text-stone-500">{{ t.title }}</span>
       </div>
     </div>
 </template>
