@@ -8,7 +8,7 @@
       <p class="text-sm text-black mt-5 mb-5">
         Don’t have an account?
       </p>
-      <router-link to="/Sign_up">
+      <router-link to="/Signup">
         <button class="font-medium w-full flex items-center justify-center bg-orange-300 hover:bg-orange-200 text-black py-2 px-5 rounded-lg"
         >
           Sign Up
