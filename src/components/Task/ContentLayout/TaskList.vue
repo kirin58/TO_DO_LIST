@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted , onMounted } from 'vue'
+import { ref, onUnmounted , onMounted , watch } from 'vue'
 import { supabase } from '../../../supabase/supabase'
 import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
@@ -8,7 +8,7 @@ const props = defineProps({
   tasks: { type: Array, default: () => [] },
   editID: Number,
   editText: String,
-  tags: { type: Array, default: () => [] } 
+  tags: Array
 })
 
 const emit = defineEmits([
@@ -29,8 +29,6 @@ const error = ref(null)
 const popupPosition = ref('bottom')
 const taskMenu = ref(null)
 const editInput = ref(null)
-const tagsList = ref([...props.tags])
-
 
 async function fetchTasks() {
   loading.value = true
@@ -137,26 +135,20 @@ function editTaskPinned(task) {
   emit('update:tasks', tasks.value) // ⚡️ ทำให้ pinned sort ใหม่
 }
 
-// async function deleteTask(taskId) {
-//   try {
-//     const { error: deleteError } = await supabase
-//       .from('tasks')
-//       .delete()
-//       .eq('id', taskId)
+const tagsList = ref([...props.tags])
 
-//     if (deleteError) throw deleteError
+function handleSelectTag(task, tag) {
+  const idx = tasksForDraggableMutable.value.findIndex(t => t.id === task.id)
+  if (idx !== -1) {
+    tasksForDraggableMutable.value[idx].tagId = tag?.id || null
+    updateTaskField(task.id, { tag_id: tag?.id || null }) // update DB
+  }
+}
 
-//     tasksForDraggableMutable.value = tasksForDraggableMutable.value.filter(t => t.id !== taskId)
-//   } catch (err) {
-//     console.error('Error deleting task:', err)
-//     error.value = err.message
-//   }
-// }
 
-// function handleSelectTag(task, tag) {
-//   task.tagId = tag ? tag.id : null
-//   updateTaskField(task.id, { tag_id: task.tagId })
-// }
+watch(() => props.tags, (newTags) => {
+  tagsList.value = newTags
+})
 
 let channel = null
 
@@ -279,7 +271,6 @@ onUnmounted(() => {
                 :tags="tagsList" 
                 @select-tag="(tag) => handleSelectTag(t, tag)"
                 @update-tag="handleUpdateTag"
-                @delete-tag="handleDeleteTag"
                 />
           </div>
         </div>

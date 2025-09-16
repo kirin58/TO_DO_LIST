@@ -1,17 +1,16 @@
 <script setup>
 import { ref ,watch , onMounted} from 'vue'
+import {supabase} from '../../supabase/supabase'
 import Datepicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 import TagPopup from '../tags/tagpopup.vue'
 
 const props = defineProps({
-    tags: {type: Array,default: () => []},
+    tags: Array,
     tasks: {type: Array,default: () => []},
     modelValue: String,
     isNew: { type: Boolean, default: false }
 })
-
-const tasksForDraggableMutable = ref([...props.tasks])
 
 const emit = defineEmits(['update:modelValue','delete','set-priority','pin-task','select-tag','update-tag' ])
 
@@ -29,40 +28,40 @@ const setDateOffset = (days) => {
     emit('update:modelValue', iso)
 }
 
+// const tags = ref([])
+const tagsList = ref([...props.tags])
+
 const showTag = ref(false)
-const internalTags = ref([])
-onMounted(() => {
-  const saved = JSON.parse(localStorage.getItem('myTags')) || []
-  internalTags.value = saved.length ? saved : [...props.tags]
+
+function updateTag(updatedtag) {
+  const index = tagsList.value.findIndex(t => t.id === updatedtag.id)
+  if (index !== -1) tagsList.value[index] = updatedtag
+  emit('update-tag', updatedtag)
+}
+
+watch(() => props.tags, (newTags) => {
+  tagsList.value = newTags
 })
 
-watch(
-  () => props.tasks,
-  (newTasks) => {
-    tasksForDraggableMutable.value = Array.isArray(newTasks) ? [...newTasks] : []
-  },
-  { deep: true, immediate: true }
-)
-
-watch(
-  () => props.tags,
-  (newTags) => {
-    if (newTags && newTags.length > 0) {
-      internalTags.value = [...newTags]
-    }
-  }
-)
-
-function handleUpdateTag(updatedTag) {
-  const index = internalTags.value.findIndex(t => t.id === updatedTag.id)
-  if (index !== -1) {
-    internalTags.value[index] = { ...updatedTag }
-  } else {
-    internalTags.value.push(updatedTag)
-  }
-  localStorage.setItem('myTags', JSON.stringify(internalTags.value))
-  emit('update-tag', updatedTag)
+function selectTag(tag) {
+  emit('select-tag', tag)
 }
+
+onMounted(async () => {
+  const saved = JSON.parse(localStorage.getItem('myTags')) || []
+  tagsList.value = saved.length ? saved : [...props.tags]
+
+  const { data, error } = await supabase.from('tags').select('id,text')
+  if (error) {
+    console.error('Error fetching tags:', error)
+  } else if (data) {
+    const merged = [...tagsList.value]  
+    data.forEach(d => {
+      if (!merged.find(t => t.id === d.id)) merged.push(d)
+    })
+    tagsList.value = merged
+  }
+})
 </script>
 <template>
     <div class="w-48 top-0 z-[9999] p-2 px-4 text-stone-600 bg-stone-50 shadow-xl">
@@ -139,11 +138,11 @@ function handleUpdateTag(updatedTag) {
             </div>
             <TagPopup 
             v-if="showTag" 
-            :tags="internalTags" 
+            :tags="tagsList" 
             :tagbar="false" 
             :tagpopup="true" 
-            @select="(tag) => emit('select-tag',tag)"
-            @update-tag="handleUpdateTag"
+            @select="selectTag"
+            @update-tag="updateTag"
             />
         </div>
         <template v-if="!props.isNew">
