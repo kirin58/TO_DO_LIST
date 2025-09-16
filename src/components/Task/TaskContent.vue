@@ -84,7 +84,6 @@ onMounted(fetchTasks)
 //state
 const completedTasks = ref([])
 const showShuffle = ref(false)
-const tags = ref([])
 const editID = ref(null)
 const editText = ref('')
 const editInput = ref(null)
@@ -216,6 +215,21 @@ function sortPinned(tasksArray) {
     return 0
   })
 }
+
+const tags = ref([])
+
+async function fetchTags() {
+  const { data, error } = await supabase.from('tags').select('*')
+  if (!error && data) {
+    tags.value = data
+    localStorage.setItem('myTags', JSON.stringify(tags.value))
+  }
+}
+onMounted(() => {
+  fetchTasks()
+  fetchTags()
+})
+
 
 
 function handleSelectTag(task, tag) {

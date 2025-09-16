@@ -70,7 +70,7 @@ function handleSelect(tag) {
         </div>
     </template>
     <template v-if="props.tagpopup">
-        <div v-for="t in localtags" :key="t.id" class="tagstyle cursor-pointer"
+        <div v-for="t in props.tags" :key="t.id" class="tagstyle cursor-pointer"
         @click="handleSelect(t)"
         :class="selectedTagId === t.id ? 'bg-teal-300 text-white' : ''">
             <i class='bx bx-menu text-2xl'></i>
