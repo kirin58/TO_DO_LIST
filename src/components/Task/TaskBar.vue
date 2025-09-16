@@ -13,9 +13,10 @@ const tags = ref([])
 const showTagInput = ref(false)
 const showTag = ref(false)
 
-async function handleAddTag(newTag) {
-  const { data, error } = await supabase.from('tags').insert([{ text: newTag }]).select()
-  if (!error && data.length) tags.value.push(data[0])
+async function handleAddTag(newTagObj) {
+  if (!tags.value.find(t => t.id === newTagObj.id)) {
+    tags.value.push(newTagObj)
+  }
 }
 
 function updateTag(updatedtag) {

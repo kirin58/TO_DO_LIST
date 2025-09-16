@@ -10,6 +10,6 @@ const title = "Trash"
     <div class="h-screen w-screen flex flex-row">
         <NavBar />
         <TaskBar />
-        <TaskContent :emptytask="emptytask" :title="title" mode="trash" :empty="'Trash can is tidy'" :emptydis="'No deleted tasks yet'"/>
+        <TaskContent  :emptytask="emptytask" :title="title" mode="trash" :empty="'Trash can is tidy'" :emptydis="'No deleted tasks yet'"/>
     </div>
 </template>
