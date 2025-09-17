@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted , onMounted , watch } from 'vue'
+import { ref, onUnmounted , onMounted , watch, computed } from 'vue'
 import { supabase } from '../../../supabase/supabase'
 import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
@@ -8,7 +8,8 @@ const props = defineProps({
   tasks: { type: Array, default: () => [] },
   editID: Number,
   editText: String,
-  tags: Array
+  tags: Array,
+  mode: { type: String, default: 'inbox' }
 })
 
 const emit = defineEmits([
@@ -150,6 +151,35 @@ watch(() => props.tags, (newTags) => {
   tagsList.value = newTags
 })
 
+// กรอง task ตาม mode
+const tasksInMode = computed({
+  get() {
+    return props.tasks.filter(task => {
+      if (!task.dueDate) return props.mode === 'inbox'
+      const taskDate = new Date(task.dueDate)
+      taskDate.setHours(0,0,0,0)
+      const today = new Date()
+      today.setHours(0,0,0,0)
+
+      if (props.mode === 'today') return taskDate.getTime() === today.getTime()
+      if (props.mode === 'next7') {
+        const start = new Date(today)
+        start.setDate(start.getDate() + 1)
+        const end = new Date(today)
+        end.setDate(end.getDate() + 7)
+        return taskDate >= start && taskDate <= end
+      }
+      return true
+    })
+  },
+  set(newVal) {
+    // update array หลัก
+    const otherTasks = props.tasks.filter(t => !newVal.includes(t))
+    emit('update:tasks', [...newVal, ...otherTasks])
+  }
+})
+
+
 let channel = null
 
 onMounted(async () => {
@@ -216,7 +246,7 @@ onUnmounted(() => {
     <div v-if="loading" class="text-gray-500 mb-2">Loading tasks...</div>
     <div v-if="error" class="text-red-500 mb-2">{{ error }}</div>
     <draggable 
-    v-model="tasksForDraggableMutable" 
+    v-model="tasksInMode" 
     item-key="id" 
     class="space-y-2" 
     handle=".drag-handle" 
@@ -236,10 +266,10 @@ onUnmounted(() => {
         <div class="task">
           <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
-            <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
+            <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.title}}</span>
             <input 
             v-else 
-            v-model="t.text" 
+            v-model="t.title" 
             class="w-full bg-transparent outline-none border-none focus:ring-0"
             @keyup.enter="$emit('edit-save', t, t.text)"
             @blur="editTaskTitle(t, t.text)" 
