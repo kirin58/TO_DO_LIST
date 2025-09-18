@@ -157,12 +157,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { createClient } from '@supabase/supabase-js'
-
-// --- Supabase setup ---
-const SUPABASE_URL = 'https://your-project-ref.supabase.co'
-const SUPABASE_ANON_KEY = 'your-anon-key'
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+import { supabase } from '../../supabase/supabase'
 
 // --- Pomodoro state ---
 const minutes = ref(25)
