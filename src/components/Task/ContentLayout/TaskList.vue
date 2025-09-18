@@ -172,6 +172,10 @@ const tasksInMode = computed({
       }
       return true
     })
+    .sort((a, b) => {
+      if (a.pinned === b.pinned) return b.id - a.id
+      return b.pinned - a.pinned
+    })
   },
   set(newVal) {
     // update array หลัก
