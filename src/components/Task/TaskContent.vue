@@ -42,7 +42,7 @@ async function fetchTasks() {
 }
 
 function handleTaskAdded(newTask) {
-  tasks.value.unshift(newTask)
+  tasks.value.unshift(mapTask(newTask)) 
 }
 
 function mapTask(task) {
