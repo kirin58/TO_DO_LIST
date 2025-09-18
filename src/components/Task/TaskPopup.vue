@@ -122,8 +122,8 @@ onMounted(async () => {
             </div>
         </div>
         <div class="taskpopup_line"></div>
-        <div class="taskpopup_func">
-            <button @click="emit('pin-task')">
+        <div @click="emit('pin-task')" class="taskpopup_func">
+            <button >
                 <i class='bx  bx-pin'  ></i>
             </button>
             <p>Pin</p>
