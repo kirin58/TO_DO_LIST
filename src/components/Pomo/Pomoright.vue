@@ -29,7 +29,7 @@
                 Focus Record
             </div>
         </div>
-        <div class="flex items-center justify-center h-1/2" v-if="pomoSessions.length === 0">
+        <div class="flex items-center justify-center h-1/2" v-if="sessions.length === 0">
             <div class="relative w-56 h-56">
                 <img
                 src="/public/tomatoglass.png"
@@ -38,7 +38,7 @@
                 />
             </div>
         </div>
-        <div class="px-6" v-if="pomoSessions.length > 0">
+        <div class="px-6" v-if="sessions.length > 0">
             <div v-for="(session, idx) in reversedSessions" :key="idx" class="flex items-center justify-between py-1">
                 <span class="text-orange-400 font-bold">
                     <i class='bx bx-timer'></i>
@@ -79,12 +79,7 @@
 </style>
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { createClient } from '@supabase/supabase-js'
-
-// --- Supabase setup ---
-const SUPABASE_URL = 'https://your-project-ref.supabase.co'
-const SUPABASE_ANON_KEY = 'your-anon-key'
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+import { supabase } from '../../supabase/supabase'
 
 // --- Pomodoro state ---
 const minutes = ref(25)

@@ -266,7 +266,8 @@ async function emitSession() {
     start: sessionStart.value.toISOString(),
     end: end.toISOString(),
     minutes: usedMinutes,
-    seconds: usedSeconds
+    seconds: usedSeconds,
+    type: 'pomodoro' // ✅ เพิ่ม type แยก Pomodoro/Stopwatch
   }
 
   try {
@@ -280,5 +281,65 @@ async function emitSession() {
 }
 
 onMounted(() => { minutes.value = 25; seconds.value = 0 })
-</script>
 
+// --- Stopwatch state ---
+const swMinutes = ref(0)
+const swSeconds = ref(0)
+const swTimer = ref(null)
+const swRunning = ref(false)
+const swPaused = ref(false)
+const swStart = ref(null)
+
+// --- Stopwatch methods ---
+function startStopwatch() {
+  if (swRunning.value) return
+  swRunning.value = true
+  swPaused.value = false
+  if (!swStart.value) swStart.value = new Date()
+
+  swTimer.value = setInterval(() => {
+    swSeconds.value++
+    if (swSeconds.value >= 60) {
+      swSeconds.value = 0
+      swMinutes.value++
+    }
+  }, 1000)
+}
+
+function pauseStopwatch() {
+  clearInterval(swTimer.value)
+  swRunning.value = false
+  swPaused.value = true
+}
+
+async function resetStopwatch() {
+  clearInterval(swTimer.value)
+
+  if (swStart.value) {
+    const end = new Date()
+    const diffMs = end - swStart.value
+    const usedMinutes = Math.floor(diffMs / 60000)
+    const usedSeconds = Math.floor((diffMs % 60000) / 1000)
+
+    const session = {
+      start: swStart.value.toISOString(),
+      end: end.toISOString(),
+      minutes: usedMinutes,
+      seconds: usedSeconds,
+      type: 'stopwatch' // ✅ แยกประเภท
+    }
+
+    try {
+      await addSession(session)  // save stopwatch session
+    } catch (err) {
+      console.error('Error saving stopwatch session:', err)
+    }
+  }
+
+  swMinutes.value = 0
+  swSeconds.value = 0
+  swRunning.value = false
+  swPaused.value = false
+  swStart.value = null
+}
+</script>
