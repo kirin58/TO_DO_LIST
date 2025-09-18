@@ -57,7 +57,7 @@ async function fetchTasks() {
       .filter(task => !task.completed && !task.is_trashed) // กรองเฉพาะงานที่ active
       .map(task => ({
         id: task.id,
-        text: task.title,
+        title: task.title,
         completed: task.completed,
         pinned: task.pinned,
         priority: task.priority,
@@ -116,7 +116,7 @@ function flagClass(priority) {
 }
 
 function editTaskTitle(task, newText) {
-  task.text = newText
+  task.title = newText
   updateTaskField(task.id, { title: newText })
 }
 
@@ -196,7 +196,7 @@ onMounted(async () => {
           if (!payload.new.completed && !payload.new.is_trashed) {
             tasksForDraggableMutable.value.unshift({
               id: payload.new.id,
-              text: payload.new.title,
+              title: payload.new.title,
               completed: payload.new.completed,
               pinned: payload.new.pinned,
               priority: payload.new.priority,
@@ -214,7 +214,7 @@ onMounted(async () => {
             // ยัง active → update หรือ add เข้าใหม่
             const updatedTask = {
               id: payload.new.id,
-              text: payload.new.title,
+              title: payload.new.title,
               completed: payload.new.completed,
               pinned: payload.new.pinned,
               priority: payload.new.priority,
@@ -269,10 +269,11 @@ onUnmounted(() => {
             <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.title}}</span>
             <input 
             v-else 
-            v-model="t.title" 
+            v-model="t.title"
+            :tasks="tasks"
             class="w-full bg-transparent outline-none border-none focus:ring-0"
-            @keyup.enter="$emit('edit-save', t, t.text)"
-            @blur="editTaskTitle(t, t.text)" 
+            @keyup.enter="$emit('edit-save', t, t.title)"
+            @blur="editTaskTitle(t, t.title)" 
             :ref="el => { if (t.id === editID) editInput.value = el }"
             />
           </div>
