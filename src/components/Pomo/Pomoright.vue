@@ -102,7 +102,7 @@ async function addSession(session) {
   const { data, error } = await supabase
     .from('sessions')
     .insert([session])
-    .select()
+    .select('*')   // ✅ ensure type is returned
   if (error) {
     console.error('❌ Supabase addSession error:', error.message)
     return null
@@ -185,12 +185,13 @@ async function emitSession() {
   const usedMinutes = Math.floor(diffMs / 60000)
   const usedSeconds = Math.floor((diffMs % 60000) / 1000)
 
-  const session = {
+    const session = {
     start: sessionStart.value.toISOString(),
     end: end.toISOString(),
     minutes: usedMinutes,
-    seconds: usedSeconds
-  }
+    seconds: usedSeconds,
+    type: mode.value === 'pomo' ? 'pomodoro' : mode.value // 👈 เพิ่มตรงนี้
+    }
 
   try {
     const saved = await addSession(session)
@@ -206,7 +207,9 @@ async function emitSession() {
 // --- Computed ---
 const todayPomo = computed(() => {
   const today = new Date().toDateString()
-  return sessions.value.filter(s => new Date(s.end).toDateString() === today).length
+  return sessions.value.filter(
+    s => new Date(s.end).toDateString() === today && s.type === 'pomodoro'
+  ).length
 })
 
 const todayFocus = computed(() => {
@@ -233,7 +236,8 @@ const reversedSessions = computed(() => [...sessions.value].reverse())
 function formatSession(s) {
   const start = new Date(s.start)
   const end = new Date(s.end)
-  return `${start.getHours()}:${start.getMinutes().toString().padStart(2,'0')} - ${end.getHours()}:${end.getMinutes().toString().padStart(2,'0')}`
+  const fmt = d => d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})
+  return `${fmt(start)} - ${fmt(end)}`
 }
 
 // --- Lifecycle ---

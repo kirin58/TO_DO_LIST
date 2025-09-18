@@ -156,9 +156,15 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted,computed } from 'vue'
 import { supabase } from '../../supabase/supabase'
 
+const todayPomo = computed(() => {
+  const today = new Date().toDateString()
+  return sessions.value.filter(
+    s => new Date(s.end).toDateString() === today && s.type === 'pomodoro'
+  ).length
+})
 // --- Pomodoro state ---
 const minutes = ref(25)
 const seconds = ref(0)
@@ -267,7 +273,7 @@ async function emitSession() {
     end: end.toISOString(),
     minutes: usedMinutes,
     seconds: usedSeconds,
-    type: 'pomodoro' // ✅ เพิ่ม type แยก Pomodoro/Stopwatch
+    type: mode.value === 'pomo' ? 'pomodoro' : mode.value // 👈 แยกประเภทตาม mode
   }
 
   try {
