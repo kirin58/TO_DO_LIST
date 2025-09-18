@@ -48,8 +48,9 @@ async function fetchTasks() {
         is_trashed,
         updated_at
       `)
+      .order('pinned' , {ascending:false})
       .order('id', { ascending: false })
-
+      
     if (fetchError) throw fetchError
 
     // Map ให้ field สอดคล้องกับ UI เดิม
