@@ -227,9 +227,13 @@ function startTimer() {
   if (running.value) return
   running.value = true
   isPaused.value = false
-  if (!sessionStart.value) sessionStart.value = new Date()
-  minutes.value = inputMinutes.value
-  seconds.value = 0
+
+  // ถ้าเริ่มใหม่จริง ๆ (ไม่ใช่ continue จาก pause)
+  if (!sessionStart.value) {
+    sessionStart.value = new Date()
+    minutes.value = inputMinutes.value
+    seconds.value = 0
+  }
 
   timer.value = setInterval(() => {
     if (seconds.value === 0 && minutes.value === 0) {
@@ -295,20 +299,22 @@ const swTimer = ref(null)
 const swRunning = ref(false)
 const swPaused = ref(false)
 const swStart = ref(null)
+const swOffset = ref(0) 
 
 // --- Stopwatch methods ---
 function startStopwatch() {
   if (swRunning.value) return
   swRunning.value = true
   swPaused.value = false
+
   if (!swStart.value) swStart.value = new Date()
 
   swTimer.value = setInterval(() => {
-    swSeconds.value++
-    if (swSeconds.value >= 60) {
-      swSeconds.value = 0
-      swMinutes.value++
-    }
+    const now = new Date()
+    const diffMs = now - swStart.value
+
+    swMinutes.value = Math.floor(diffMs / 60000)
+    swSeconds.value = Math.floor((diffMs % 60000) / 1000)
   }, 1000)
 }
 
@@ -316,36 +322,42 @@ function pauseStopwatch() {
   clearInterval(swTimer.value)
   swRunning.value = false
   swPaused.value = true
+  swOffset.value = new Date() - swStart.value
+}
+
+async function emitStopwatchSession() {
+  if (!swStart.value) return
+  const end = new Date()
+  const diffMs = end - swStart.value
+  const usedMinutes = Math.floor(diffMs / 60000)
+  const usedSeconds = Math.floor((diffMs % 60000) / 1000)
+
+  const session = {
+    start: swStart.value.toISOString(),
+    end: end.toISOString(),
+    minutes: usedMinutes,
+    seconds: usedSeconds,
+    type: 'stopwatch'
+  }
+
+  try {
+    await addSession(session)
+  } catch (err) {
+    console.error('❌ Error saving stopwatch session:', err)
+  }
+
+  swStart.value = null
+  swOffset.value = 0
 }
 
 async function resetStopwatch() {
   clearInterval(swTimer.value)
-
-  if (swStart.value) {
-    const end = new Date()
-    const diffMs = end - swStart.value
-    const usedMinutes = Math.floor(diffMs / 60000)
-    const usedSeconds = Math.floor((diffMs % 60000) / 1000)
-
-    const session = {
-      start: swStart.value.toISOString(),
-      end: end.toISOString(),
-      minutes: usedMinutes,
-      seconds: usedSeconds,
-      type: 'stopwatch' // ✅ แยกประเภท
-    }
-
-    try {
-      await addSession(session)  // save stopwatch session
-    } catch (err) {
-      console.error('Error saving stopwatch session:', err)
-    }
-  }
-
+  await emitStopwatchSession()   // ✅ save ก่อน reset
   swMinutes.value = 0
   swSeconds.value = 0
   swRunning.value = false
   swPaused.value = false
   swStart.value = null
+  swOffset.value = 0
 }
 </script>
