@@ -1,25 +1,32 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-const selectedType = ref('None')
-const showTypes = ref(false) 
+const props = defineProps({
+  selectedType: String
+})
 
 const emit = defineEmits(['selectType'])
-function selectType(type) {
-  selectedType.value = type
+const showTypes = ref(false)
+const type = ref(props.selectedType)
+
+watch(() => props.selectedType, (v) => {
+  type.value = v
+})
+
+function selectType(t) {
+  type.value = t
   showTypes.value = false
-  emit('selectType',type)
+  emit('selectType', t)
 }
 
 function toggleMenu() {
   showTypes.value = !showTypes.value
 }
 </script>
-
 <template>
   <div class="flex items-start gap-4">
     <div @click="toggleMenu" class="shuffle shuffle-bg">
-      <p>Sort by</p>
+      <p class="w-16">Sort by</p>
       <button>{{ selectedType }}</button>
       <i class='bx bxs-chevron-right'></i>
     </div>

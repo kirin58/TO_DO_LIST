@@ -55,7 +55,7 @@ async function addTask() {
         placeholder="+ Add task" 
         class="bg-transparent 
         text-slate-500 
-        outline-none"/>
+        outline-none w-5/6"/>
         <input type="date" 
         v-model="dueDate" locale="th" 
         class="flex items-end ml-2 
@@ -63,7 +63,7 @@ async function addTask() {
         bg-transparent 
         outline-none 
         border-none 
-        focus:ring-0" 
+        focus:ring-0 w-1/6" 
         />
     </div>
 </template>
