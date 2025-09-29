@@ -9,6 +9,7 @@ import Today from '@/views/Task/Today.vue'
 import Next7 from '@/views/Task/Next7.vue'
 import Completed from '@/views/Task/Completed.vue'
 import Trash from '@/views/Task/Trash.vue'
+import setting from '@/views/setting.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
