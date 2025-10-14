@@ -1,6 +1,4 @@
-<script>
-  import NavBar from '@/components/NavBar.vue';
-</script>
+
 
 <template>
   <body class="w-screen h-screen flex flex-row bg-gray-100">
