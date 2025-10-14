@@ -21,7 +21,8 @@ const routes = [
   { path: '/Trash', name: 'Trash', component: Trash},
   { path: '/Signup' , name: 'Signup', component: Signup},
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
-  { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro}
+  { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro },
+  { path: '/setting' , name: 'setting', component: setting }
 ]
 
 const router = createRouter({

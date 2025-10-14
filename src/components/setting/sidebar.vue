@@ -1,5 +1,4 @@
 <script setup>
-import NavBar from '@/components/NavBar.vue'
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
 const show = ref(false)
