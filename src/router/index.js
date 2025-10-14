@@ -9,6 +9,7 @@ import Today from '@/views/Task/Today.vue'
 import Next7 from '@/views/Task/Next7.vue'
 import Completed from '@/views/Task/Completed.vue'
 import Trash from '@/views/Task/Trash.vue'
+import Calender from '@/views/Calender.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -20,7 +21,8 @@ const routes = [
   { path: '/Trash', name: 'Trash', component: Trash},
   { path: '/Signup' , name: 'Signup', component: Signup},
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
-  { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro}
+  { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
+  { path : '/Calender' , name: 'Calender', component: Calender}
 ]
 
 const router = createRouter({
