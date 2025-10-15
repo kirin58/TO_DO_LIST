@@ -333,45 +333,47 @@ async function deleteForever() {
 
 const tasksForDraggableMutable = computed({
   get() {
-    let result = tasks.value.filter(t => isTaskInMode(t))
+    let filteredTasks = tasks.value.filter(t => isTaskInMode(t))
 
-    // pinned อยู่บนสุดเสมอ
-    const pinnedSort = (a, b) => {
-      if (a.pinned && !b.pinned) return -1
-      if (!a.pinned && b.pinned) return 1
-      return 0
+    const pinnedSort = (a, b) => (a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : 0)
+    const sortByDateFn = (a, b) => {
+      if (!a.dueDate && b.dueDate) return 1
+      if (a.dueDate && !b.dueDate) return -1
+      if (!a.dueDate && !b.dueDate) return 0
+      return new Date(a.dueDate) - new Date(b.dueDate)
+    }
+    const sortByPriorityFn = (a, b) => {
+      const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+      return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+    }
+    const sortByTagFn = (a, b) => {
+      if (!a.tagId && b.tagId) return 1
+      if (a.tagId && !b.tagId) return -1
+      if (!a.tagId && !b.tagId) return 0
+      return a.tagId - b.tagId
     }
 
-    // sort ตาม type
+    // เลือก sort ตาม type ที่เลือก
     switch (currentSortType.value) {
       case 'Date':
-        result.sort((a, b) => pinnedSort(a, b) || sortByDateFn(a, b))
+        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByDateFn(a, b))
         break
       case 'Priority':
-        result.sort((a, b) => pinnedSort(a, b) || sortByPriorityFn(a, b))
+        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByPriorityFn(a, b))
         break
       case 'Tag':
-        result.sort((a, b) => {
-          const pinned = pinnedSort(a, b)
-          if (pinned !== 0) return pinned
-          // task ที่ไม่มี tag (#none) อยู่ท้าย
-          if (!a.tagId && b.tagId) return 1
-          if (a.tagId && !b.tagId) return -1
-          if (!a.tagId && !b.tagId) return 0
-          return a.tagId - b.tagId
-        })
+        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByTagFn(a, b))
         break
-      default: // None
-        result.sort(pinnedSort)
-        break
+      default:
+        filteredTasks.sort((a, b) => pinnedSort(a, b) || b.id - a.id)
     }
 
-    return result
+    return filteredTasks
   },
   set(newVal) {
-    const otherTasks = tasks.value.filter(t => t.completed || !isTaskInMode(t))
+    const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
     tasks.value = [...newVal, ...otherTasks]
-    saveTasks()
+    saveTask
   }
 })
 </script>
@@ -408,7 +410,7 @@ const tasksForDraggableMutable = computed({
         <div v-show="tasksForDraggableMutable.length > 0" >
           <TaskList 
           :mode="props.mode"
-          :tasks="tasks"  
+          :tasks="tasksForDraggableMutable"  
           :editID="editID" 
           :editText="editText" 
           :tags="tags" 
