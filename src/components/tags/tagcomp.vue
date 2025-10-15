@@ -1,6 +1,6 @@
 <script setup>
 import { ref} from 'vue'
-import {supabase} from '../../supabase/supabase'
+import { supabase } from '../../supabase/supabase'
 
 const emit = defineEmits(['closeInput','addTag'])
 const tag = ref('')
@@ -11,7 +11,7 @@ async function addTag() {
 
   const { data, error } = await supabase
     .from('tags')
-    .insert([{ text: trimmedTag }])
+    .insert([{ name: trimmedTag }])
     .select('*')  // รับทุก column
 
   if (error) {
