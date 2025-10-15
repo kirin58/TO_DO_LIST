@@ -7,6 +7,8 @@ import Inbox from '@/views/Task/Inbox.vue'
 import Pomodoro from '@/views/Pomodoro.vue'
 import Calender from '@/views/Calender.vue'
 import CalenderMonth from '@/components/Calender/CalenderMonth.vue'
+import CalenderYear from '@/components/Calender/CalenderYear.vue'
+
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
   { path: '/Login' , name: 'Login', component: Login},
@@ -15,6 +17,8 @@ const routes = [
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
   { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
   { path: '/Calender' , name: 'Calender', component: CalenderMonth},
+  { path: '/CalenderMonth', component: CalenderMonth },
+  { path: '/CalenderYear', component: CalenderYear }
 ]
 
 const router = createRouter({
