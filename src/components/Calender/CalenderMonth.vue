@@ -1,8 +1,5 @@
-
-
 <template>
   <body class="w-screen h-screen flex flex-row bg-gray-100">
-    <!-- Sidebar -->
     <NavBar />
     <!-- Main Content -->
     <div class="flex-1 p-8 flex justify-center items-center">
@@ -12,7 +9,7 @@
         <div class="flex items-center justify-between p-4 border-b">
           <h2 class="text-xl font-bold">Calendar</h2>
           <div class="flex items-center gap-3">
-            <button class="px-3 py-1 border rounded-md">Month</button>
+            <button @click="CalenderYear" class="px-3 py-1 border rounded-md">Month</button>
             <div class="flex items-center">
               <div class="flex items-center justify-between w-[250px]">
                 <button @click="prevMonth" class="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full">&#8592;</button>
@@ -76,7 +73,13 @@
 
 <script setup>
 import { ref, computed } from "vue";
+import { useRouter } from 'vue-router'
+import NavBar from "../NavBar.vue";
+const router = useRouter()
 
+function CalenderYear() {
+  router.push('/calendar-year')
+}
 const today = new Date();
 const currentMonth = ref(today.getMonth());
 const currentYear = ref(today.getFullYear());

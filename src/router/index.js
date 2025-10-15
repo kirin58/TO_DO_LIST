@@ -11,6 +11,9 @@ import Completed from '@/views/Task/Completed.vue'
 import Trash from '@/views/Task/Trash.vue'
 import Calender from '@/views/Calender.vue'
 import Matrix from '@/views/Matrix.vue'
+import CalenderMonth from '@/components/Calender/CalenderMonth.vue'
+import CalenderYear from '@/components/Calender/CalenderYear.vue'
+
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -24,6 +27,8 @@ const routes = [
   { path: '/Resetpassword' , name: 'Resetpassword' , component: Resetpassword},
   { path: '/Pomodoro' , name: 'Pomodoro', component: Pomodoro},
   { path : '/Calender' , name: 'Calender', component: Calender},
+  { path: '/calendar-month', component: CalenderMonth },
+  { path: '/calendar-year', component: CalenderYear },
   { path : '/Matrix' , name: 'Matrix', component: Matrix}
 ]
 

@@ -1,12 +1,6 @@
-<script>
-import NavBar from '@/components/NavBar.vue';
-</script>
-
 <template>
   <body class="w-screen h-screen flex flex-row bg-gray-100">
-    <!-- Sidebar -->
     <NavBar />
-
     <!-- Main Content -->
     <div class="flex-1 p-8 flex justify-center items-start">
       <!-- Calendar Container -->
@@ -16,7 +10,7 @@ import NavBar from '@/components/NavBar.vue';
           <h2 class="text-xl font-bold">Calendar</h2>
           <div class="flex items-center gap-3">
             <div class="relative">
-              <button class="px-3 py-1 border rounded-md">Year</button>
+              <button @click="CalenderMonth" class="px-3 py-1 border rounded-md">Year</button>
             </div>
             <div class="flex items-center">
               <button
@@ -82,7 +76,13 @@ import NavBar from '@/components/NavBar.vue';
 
 <script setup>
 import { ref, computed } from "vue";
+import { useRouter } from 'vue-router'
+import NavBar from "../NavBar.vue";
+const router = useRouter()
 
+function CalenderMonth() {
+  router.push('/calendar-month')
+}
 const today = new Date();
 const currentYear = ref(today.getFullYear());
 
