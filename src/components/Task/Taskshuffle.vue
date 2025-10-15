@@ -4,8 +4,8 @@ import { ref, watch } from 'vue'
 const props = defineProps({
   selectedType: String
 })
-
 const emit = defineEmits(['selectType'])
+
 const showTypes = ref(false)
 const type = ref(props.selectedType)
 
