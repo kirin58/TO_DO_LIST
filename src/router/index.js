@@ -14,6 +14,7 @@ import Matrix from '@/views/Matrix.vue'
 import CalenderMonth from '@/components/Calender/CalenderMonth.vue'
 import CalenderYear from '@/components/Calender/CalenderYear.vue'
 
+import setting from '@/views/setting.vue'
 
 const routes = [
   { path: '/', name: 'Dashboard', component: Dashboard },
@@ -29,7 +30,8 @@ const routes = [
   { path : '/Calender' , name: 'Calender', component: Calender},
   { path: '/calendar-month', component: CalenderMonth },
   { path: '/calendar-year', component: CalenderYear },
-  { path : '/Matrix' , name: 'Matrix', component: Matrix}
+  { path : '/Matrix' , name: 'Matrix', component: Matrix},
+  { path: '/setting' , name: 'setting', component: setting }
 ]
 
 const router = createRouter({

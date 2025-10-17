@@ -1,7 +1,11 @@
 <template>
   <header class="min-h-screen w-16 bg-orange-300 flex flex-col items-center justify-between p-2 gap-2">
     <div class="h-4/6 w-full flex flex-col items-center gap-10">
-      <button class="w-10 h-10 bg-slate-200 rounded-lg"></button>
+      <!-- ✅ ปุ่มนี้คือปุ่มเปิดหน้า Settings (ก่อนเข้าสู่หน้า settings จริง) -->
+      <button class="w-10 h-10 rounded-lg  mt-2 overflow-hidden" @click="toggleSettings">
+        <img src="https://i.pravatar.cc/40" alt="profile" class="w-full h-full object-cover" />
+      </button>
+
       <nav class="h-1/2 w-full flex flex-col items-center justify-between">
         
         <!-- Inbox -->
@@ -25,7 +29,19 @@
             </span>
           </button>
         </div>
-        <Search v-if="showSearch" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"></Search>
+
+        <!-- ✅ popup Search -->
+        <Search
+          v-if="showSearch"
+          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+        />
+
+        <!-- ✅ popup Settings (ใหม่ เพิ่มเหมือน Search) -->
+        <Settings
+          :show="showSettings"
+          @close="showSettings = false"
+          class="absolute bottom-1/2 transform -translate-x-1/2 z-50"
+        />
 
         <!-- Calendar -->
         <div class="flex items-center">
@@ -48,7 +64,6 @@
             </span>
           </router-link>
         </div>
-
 
         <!-- Matrix -->
         <div class="flex items-center">
@@ -101,12 +116,21 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import Search from '@/views/Search.vue';
+import { ref } from 'vue'
+import Search from '@/views/Search.vue'
+import Settings from '@/views/setting.vue' // ✅ import Settings.vue
 
-const showSearch = ref(false);
+const showSearch = ref(false)
+const showSettings = ref(false)
+
 function toggleSearch() {
-  showSearch.value = !showSearch.value;
+  showSearch.value = !showSearch.value
+  if (showSettings.value) showSettings.value = false
+}
+
+function toggleSettings() {
+  showSettings.value = !showSettings.value
+  if (showSearch.value) showSearch.value = false
 }
 </script>
 
