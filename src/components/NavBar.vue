@@ -38,9 +38,9 @@
 
         <!-- ✅ popup Settings (ใหม่ เพิ่มเหมือน Search) -->
         <Settings
-          :show="showSettings.value"
-          @close="showSettings.value = false"
-          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+          :show="showSettings"
+          @close="showSettings = false"
+          class="absolute bottom-1/2 transform -translate-x-1/2 z-50"
         />
 
         <!-- Calendar -->
