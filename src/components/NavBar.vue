@@ -5,6 +5,12 @@
       <button class="w-10 h-10 rounded-lg  mt-2 overflow-hidden" @click="toggleSettings">
         <img src="https://i.pravatar.cc/40" alt="profile" class="w-full h-full object-cover" />
       </button>
+              <!-- ✅ popup Settings (ใหม่ เพิ่มเหมือน Search) -->
+      <Settings
+          :show="showSettings"
+          @close="showSettings = false"
+          class="absolute bottom-6 transform -translate-x-1/2 z-50"
+      />
 
       <nav class="h-1/2 w-full flex flex-col items-center justify-between">
         
@@ -34,13 +40,6 @@
         <Search
           v-if="showSearch"
           class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
-        />
-
-        <!-- ✅ popup Settings (ใหม่ เพิ่มเหมือน Search) -->
-        <Settings
-          :show="showSettings"
-          @close="showSettings = false"
-          class="absolute bottom-1/2 transform -translate-x-1/2 z-50"
         />
 
         <!-- Calendar -->
