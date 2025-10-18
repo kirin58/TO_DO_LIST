@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-
+import Sidebar from '../components/setting/sidebar.vue'
 const props = defineProps({
   show: Boolean
 })
@@ -8,14 +8,17 @@ const emit = defineEmits(['close'])
 
 const wrapper = ref(null)
 
-function goSettings() {
-  emit('close')
-  window.location.href = '/setting'
-}
-
 function signOut() {
   emit('close')
   alert('Signed out')
+}
+
+const showSidebar = ref(false)
+function closeSidebar() {
+  showSidebar.value = false
+}
+function toggleSidebar() {
+  showSidebar.value = !showSidebar.value
 }
 
 function handleClickOutside(e) {
@@ -26,6 +29,7 @@ function handleClickOutside(e) {
 
 onMounted(() => document.addEventListener('mousedown', handleClickOutside))
 onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
+
 </script>
 
 <template>
@@ -43,7 +47,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
 
         <button
           class="flex items-center w-full px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
-          @click="goSettings"
+          @click="toggleSidebar"
         >
           <i class="bx bx-cog mr-2 text-base"></i> Settings
         </button>
@@ -57,6 +61,12 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
       </div>
     </transition>
   </div>
+  <sidebar
+    v-if="showSidebar"
+    :show="showSidebar"
+    @close="closeSidebar"
+    class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
+  />
 </template>
 
 <style scoped>

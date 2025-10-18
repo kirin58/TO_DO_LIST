@@ -40,7 +40,7 @@
         <Settings
           :show="showSettings"
           @close="showSettings = false"
-          class="absolute bottom-1/2 transform -translate-x-1/2 z-50"
+          class="absolute transform z-50"
         />
 
         <!-- Calendar -->
