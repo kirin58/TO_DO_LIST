@@ -286,7 +286,7 @@ watch(() => props.currentSortType, () => {
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
               <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
-                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.name || '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
