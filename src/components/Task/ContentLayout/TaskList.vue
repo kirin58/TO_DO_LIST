@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onUnmounted , onMounted , watch } from 'vue'
+import { ref, onUnmounted , onMounted , watch, computed } from 'vue'
 import { supabase } from '../../../supabase/supabase'
 import draggable from 'vuedraggable'
 import TaskPopup from '../TaskPopup.vue'
@@ -8,8 +8,11 @@ const props = defineProps({
   tasks: { type: Array, default: () => [] },
   editID: Number,
   editText: String,
-  tags: Array
+  tags: Array,
+  mode: { type: String, default: 'inbox' },
+  currentSortType: { type: String, default: 'None' }
 })
+
 
 const emit = defineEmits([
   'update:tasks',
@@ -23,7 +26,6 @@ const emit = defineEmits([
   'select-tag'
 ])
 
-const tasksForDraggableMutable = ref([])
 const loading = ref(false)
 const error = ref(null)
 const popupPosition = ref('bottom')
@@ -47,8 +49,6 @@ async function fetchTasks() {
         is_trashed,
         updated_at
       `)
-      .order('id', { ascending: false })
-
     if (fetchError) throw fetchError
 
     // Map ให้ field สอดคล้องกับ UI เดิม
@@ -56,13 +56,18 @@ async function fetchTasks() {
       .filter(task => !task.completed && !task.is_trashed) // กรองเฉพาะงานที่ active
       .map(task => ({
         id: task.id,
-        text: task.title,
+        title: task.title,
         completed: task.completed,
         pinned: task.pinned,
         priority: task.priority,
         dueDate: task.due_date,
         tagId: task.tag_id
     }))
+    .sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return b.id - a.id // งานใหม่ขึ้นก่อน
+    })
   } catch (err) {
     console.error('Error fetching tasks:', err)
     error.value = err.message
@@ -70,6 +75,11 @@ async function fetchTasks() {
     loading.value = false
   }
 }
+
+const tasksForDraggableMutable = computed({
+  get: () => props.tasks,
+  set: (newVal) => emit('update:tasks', newVal)
+})
 
 function onDragEnd() {
   emit('update:tasks', tasksForDraggableMutable.value)
@@ -115,7 +125,7 @@ function flagClass(priority) {
 }
 
 function editTaskTitle(task, newText) {
-  task.text = newText
+  task.title = newText
   updateTaskField(task.id, { title: newText })
 }
 
@@ -132,7 +142,11 @@ function editTaskPriority(task, priority) {
 function editTaskPinned(task) {
   task.pinned = !task.pinned
   updateTaskField(task.id, { pinned: task.pinned })
-  emit('update:tasks', tasks.value) // ⚡️ ทำให้ pinned sort ใหม่
+    tasksForDraggableMutable.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return 0
+  })
 }
 
 const tagsList = ref([...props.tags])
@@ -150,6 +164,8 @@ watch(() => props.tags, (newTags) => {
   tagsList.value = newTags
 })
 
+
+
 let channel = null
 
 onMounted(async () => {
@@ -166,7 +182,7 @@ onMounted(async () => {
           if (!payload.new.completed && !payload.new.is_trashed) {
             tasksForDraggableMutable.value.unshift({
               id: payload.new.id,
-              text: payload.new.title,
+              title: payload.new.title,
               completed: payload.new.completed,
               pinned: payload.new.pinned,
               priority: payload.new.priority,
@@ -184,7 +200,7 @@ onMounted(async () => {
             // ยัง active → update หรือ add เข้าใหม่
             const updatedTask = {
               id: payload.new.id,
-              text: payload.new.title,
+              title: payload.new.title,
               completed: payload.new.completed,
               pinned: payload.new.pinned,
               priority: payload.new.priority,
@@ -210,6 +226,26 @@ onMounted(async () => {
 onUnmounted(() => {
   if (channel) supabase.removeChannel(channel)
 })
+
+watch(() => props.currentSortType, () => {
+  tasksForDraggableMutable.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+
+    switch (props.currentSortType) {
+      case 'Date':
+        return new Date(a.dueDate || 0) - new Date(b.dueDate || 0)
+      case 'Priority':
+        const order = { red: 1, yellow: 2, sky: 3, green: 4, null: 5 }
+        return (order[a.priority] || 5) - (order[b.priority] || 5)
+      case 'Tag':
+        return (a.tagId || 0) - (b.tagId || 0)
+      default:
+        return b.id - a.id
+    }
+  })
+})
+
 </script>
 
 <template>
@@ -224,6 +260,7 @@ onUnmounted(() => {
     ghost-class="drag-ghost"
     chosen-class="drag-chosen" 
     @end="onDragEnd"
+    :disabled="currentSortType !== 'None'"
     >
     <template #item="{ element: t }">
       <div v-if="t" :key="t.id" class="flex items-center">
@@ -236,13 +273,14 @@ onUnmounted(() => {
         <div class="task">
           <div class="max-w-[50%] flex items-center gap-4">
             <i v-if="t.pinned" class="bx bx-pin text-xl text-purple-400"></i>
-            <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.text }}</span>
+            <span v-if="editID !== t.id" @click="$emit('edit-task', t)" class="w-full cursor-pointer select-none">{{ t.title}}</span>
             <input 
             v-else 
-            v-model="t.text" 
+            v-model="t.title"
+            :tasks="tasks"
             class="w-full bg-transparent outline-none border-none focus:ring-0"
-            @keyup.enter="$emit('edit-save', t, t.text)"
-            @blur="editTaskTitle(t, t.text)" 
+            @keyup.enter="$emit('edit-save', t, t.title)"
+            @blur="editTaskTitle(t, t.title)" 
             :ref="el => { if (t.id === editID) editInput.value = el }"
             />
           </div>
@@ -251,7 +289,7 @@ onUnmounted(() => {
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
               <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
-                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.name || '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
@@ -270,7 +308,7 @@ onUnmounted(() => {
                 @delete="$emit('delete-task', t.id)"
                 :tags="tagsList" 
                 @select-tag="(tag) => handleSelectTag(t, tag)"
-                @update-tag="handleUpdateTag"
+          
                 />
           </div>
         </div>

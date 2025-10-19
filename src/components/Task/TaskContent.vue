@@ -11,8 +11,16 @@ import Taskshuffle from './Taskshuffle.vue'
 import Emptytask from './ContentLayout/Emptytask.vue'
 import Trashpage from './ContentLayout/Trashpage.vue'
 
+//state
 const tasks = ref([])
 const loading = ref(false)
+const completedTasks = ref([])
+const editID = ref(null)
+const editText = ref('')
+const editInput = ref(null)
+const trashTasks = ref([])
+const showShuffle = ref(false)
+const currentSortType = ref('None')
 
 const emit = defineEmits(['selectTag'])
 
@@ -24,9 +32,9 @@ async function fetchTasks() {
     .order('id', { ascending: false })
 
   if (!error && data) {
-    tasks.value = data.filter(t => !t.completed && !t.is_trashed)
-    completedTasks.value = data.filter(t => t.completed && !t.is_trashed)
-    trashTasks.value = data.filter(t => t.is_trashed)
+    tasks.value = data.filter(t => !t.completed && !t.is_trashed).map(mapTask)
+    completedTasks.value = data.filter(t => t.completed && !t.is_trashed).map(mapTask)
+    trashTasks.value = data.filter(t => t.is_trashed).map(mapTask)
   } else {
     console.error(error)
   }
@@ -34,7 +42,7 @@ async function fetchTasks() {
 }
 
 function handleTaskAdded(newTask) {
-  tasks.value.unshift(newTask)
+  tasks.value.unshift(mapTask(newTask)) 
 }
 
 function mapTask(task) {
@@ -81,17 +89,6 @@ function edit(task) {
 }
 
 onMounted(fetchTasks)
-//state
-const completedTasks = ref([])
-const showShuffle = ref(false)
-const editID = ref(null)
-const editText = ref('')
-const editInput = ref(null)
-const sortByDate = ref(false)
-const sortByPriority = ref(false)
-const sortByNone = ref(true)
-const trashTasks = ref([])
-
 
 //Props
 const props = defineProps({
@@ -99,8 +96,35 @@ const props = defineProps({
   empty: String,
   emptydis: String,
   title: String,
-  mode: { type: String, default: 'today' },
+  mode: { type: String, default: 'inbox' }
 })
+
+function isTaskInMode(task) {
+  if (!task.dueDate) return props.mode === 'inbox'; // Inbox แสดง task ที่ไม่มี dueDate
+
+  const taskDate = new Date(task.dueDate);
+  taskDate.setHours(0,0,0,0); // reset เวลา
+
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  if (props.mode === 'today') {
+    return taskDate.getTime() === today.getTime();
+  }
+
+  if (props.mode === 'next7') {
+    const start = new Date(today);
+    start.setDate(start.getDate() + 1); // พรุ่งนี้
+    const end = new Date(today);
+    end.setDate(end.getDate() + 7); // 7 วันถัดไป
+    return taskDate >= start && taskDate <= end;
+  }
+
+  if (props.mode === 'inbox') return true; // Inbox แสดงทั้งหมด
+
+  return false;
+}
+
 
 const pageTitle = computed(() => {
   if (props.title) return props.title
@@ -181,40 +205,59 @@ function editDate(task, newDate) {
   fetchTasks()
 }
 
-// function sortByDateFn(a, b) {
-//   if (!a.dueDate && !b.dueDate) return 0
-//   if (!a.dueDate) return 1
-//   if (!b.dueDate) return -1
-//   return new Date(a.dueDate) - new Date(b.dueDate)
-// }
-
-// function sortByPriorityFn(a, b) {
-//   const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-//   return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
-// }
-
-// function toggleShuffle() {
-//   showShuffle.value = !showShuffle.value
-// }
-
-// function handleSelectType(type) {
-//   sortByDate.value = type === 'Date'
-//   sortByPriority.value = type === 'Priority'
-//   sortByNone.value = type === 'None'
-
-//   let sorted = [...tasksForDraggable.value]
-
-//   if (sortByDate.value) sorted.sort(sortByDateFn)
-//   else if (sortByPriority.value) sorted.sort(sortByPriorityFn)
-// }
-
-function sortPinned(tasksArray) {
-  return [...tasksArray].sort((a, b) => {
-    if (a.pinned && !b.pinned) return -1
-    if (!a.pinned && b.pinned) return 1
-    return 0
-  })
+function toggleShuffle() {
+  showShuffle.value = !showShuffle.value
 }
+
+function sortByDateFn(a, b) {
+  if (!a.dueDate && b.dueDate) return 1
+  if (a.dueDate && !b.dueDate) return -1
+  if (!a.dueDate && !b.dueDate) return 0
+  return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+}
+
+function sortByPriorityFn(a, b) {
+  const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+  return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
+}
+
+function handleSelectType(type) {
+  currentSortType.value = type
+}
+
+async function editTaskPinned(task) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ pinned: !task.pinned })
+    .eq('id', task.id)
+    .select()
+
+  if (!error && data) {
+    task.pinned = data[0].pinned
+    saveTasks()
+  }
+}
+
+async function setPriority(task, priority) {
+  const { data, error } = await supabase
+    .from('tasks')
+    .update({ priority })
+    .eq('id', task.id)
+    .select()
+
+  if (!error && data) {
+    // อัปเดต priority ใน tasks array ของ frontend
+    const t = tasks.value.find(t => t.id === task.id)
+    if (t) t.priority = data[0].priority
+
+    // อัปเดต priority ใน completedTasks ถ้าอยู่ในนั้น
+    const ct = completedTasks.value.find(t => t.id === task.id)
+    if (ct) ct.priority = data[0].priority
+
+    saveTasks()
+  }
+}
+
 
 const tags = ref([])
 
@@ -287,48 +330,52 @@ async function deleteForever() {
   saveTasks()
 }
 
-
-//mode
-
-function isTaskInMode(task) {
-  if (props.mode === 'inbox') return true;
-  if (props.mode === 'today') {
-    if (!task.dueDate) return false;
-    return new Date(task.dueDate).toDateString() === today.toDateString();
-  }
-  if (props.mode === 'next7') {
-    const start = new Date(today);
-    start.setDate(today.getDate() + 1);
-    const end = new Date(today);
-    end.setDate(today.getDate() + 8);
-    if (!task.dueDate) return false;
-    const taskDate = new Date(task.dueDate);
-    return taskDate >= start && taskDate <= end;
-  }
-  return false;
-}
-
 const tasksForDraggableMutable = computed({
   get() {
-    let result = tasks.value.filter(t => isTaskInMode(t))
+    let filteredTasks = tasks.value.filter(t => isTaskInMode(t))
 
-    // sort pinned บนสุด
-    result.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1
-      if (!a.pinned && b.pinned) return 1
-      return 0
-    })
+    const pinnedTasks = filteredTasks.filter(t => t.pinned)
+    const normalTasks = filteredTasks.filter(t => !t.pinned)
 
-    return result
+    let sortedNormal = [...normalTasks]
+
+    // --- เรียงตาม currentSortType ---
+    switch (currentSortType.value) {
+      case 'Date':
+        sortedNormal.sort((a, b) => {
+          if (!a.dueDate && b.dueDate) return 1
+          if (a.dueDate && !b.dueDate) return -1
+          if (!a.dueDate && !b.dueDate) return 0
+          return new Date(a.dueDate) - new Date(b.dueDate)
+        })
+        break
+      case 'Priority':
+        const order = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+        sortedNormal.sort((a, b) => (order[a.priority] || 5) - (order[b.priority] || 5))
+        break
+      case 'Tag':
+        sortedNormal.sort((a, b) => {
+          if (!a.tagId && b.tagId) return 1
+          if (a.tagId && !b.tagId) return -1
+          if (!a.tagId && !b.tagId) return 0
+          return a.tagId - b.tagId
+        })
+        break
+      case 'None':
+      default:
+        break
+    }
+    return [...pinnedTasks, ...sortedNormal]
   },
+
   set(newVal) {
-    const otherTasks = tasks.value.filter(
-      t => t.completed || !isTaskInMode(t))
-    tasks.value = [...newVal, ...otherTasks]
-    saveTasks()
+    if (currentSortType.value === 'None') {
+      const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
+      tasks.value = [...newVal, ...otherTasks]
+      saveTasks()
+    }
   }
 })
-
 </script>
 
 <template>
@@ -337,13 +384,14 @@ const tasksForDraggableMutable = computed({
     :class="props.mode == 'completed' || props.mode == 'trash' ? 'h-[12%]' : 'h-[16%]'">
       <div class="flex items-center justify-between p-2 mb-2 ">
         <p  class="text-2xl font-black text-stone-600">     {{ pageTitle}}</p>
-        <div v-if="isShowDatepage()" class="text-stone-400 text-2xl">
+        <div v-if="isShowDatepage()" class="text-stone-400 text-2xl relative">
           <button @click="toggleShuffle">
             <i class='bx  bx-shuffle'  ></i>
           </button>
           <Taskshuffle 
           v-if="showShuffle" 
-          class="absolute z-50" 
+          class="absolute z-50"
+          :selectedType="currentSortType"
           @selectType="handleSelectType"
           />
         </div>
@@ -361,10 +409,11 @@ const tasksForDraggableMutable = computed({
         <!-- TaskLists -->
         <div v-show="tasksForDraggableMutable.length > 0" >
           <TaskList 
-          :key="props.mode" 
-          :tasks="tasksForDraggableMutable" 
+          :mode="props.mode"
+          :tasks="tasksForDraggableMutable"  
           :editID="editID" 
           :editText="editText" 
+          :currentSortType="currentSortType" 
           :tags="tags" 
           @pin-task="editTaskPinned"
           @update:tasks="tasksForDraggableMutable = $event" 

@@ -1,5 +1,5 @@
 <script setup>
-import {ref,onMounted , nextTick, watch} from 'vue'
+import {ref, nextTick} from 'vue'
 import { supabase } from '../../supabase/supabase'
 
 const props = defineProps({ 
@@ -16,7 +16,7 @@ const selectedTagId = ref(null)
 
 function startEdit(tag) {
   editingId.value = tag.id
-  editText.value = tag.text
+  editText.value = tag.name  // ✅ ใช้ name แทน text
   nextTick(() => {
     const input = document.getElementById(`input-${tag.id}`)
     if (input) input.focus()
@@ -28,7 +28,7 @@ async function saveEdit(tag) {
 
   const { data, error } = await supabase
     .from('tags')
-    .update({ text: editText.value.trim() })
+    .update({ name: editText.value.trim() }) // ✅ name แทน text
     .eq('id', tag.id)
     .select()
   if (error) return console.error(error)
@@ -64,7 +64,7 @@ function handleSelect(tag) {
                 class="bg-transparent border-b border-gray-400 focus:outline-none"/>
             </template>
             <template v-else>    
-                <span @click="startEdit(t)" class="cursor-text select-none">{{ t.text }}</span>
+                <span @click="startEdit(t)" class="cursor-text select-none">{{ t.name }}</span>
             </template>
             <button @click="deleteTags(t.id)"><i class='bx  bx-trash text-red-500'></i></button>
         </div>
@@ -74,7 +74,7 @@ function handleSelect(tag) {
         @click="handleSelect(t)"
         :class="selectedTagId === t.id ? 'bg-teal-300 text-white' : ''">
             <i class='bx bx-menu text-2xl'></i>
-            <span>{{ t.text }}</span>
+            <span>{{ t.name }}</span>
         </div>
     </template>
 </template>
