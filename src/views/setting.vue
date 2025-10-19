@@ -63,7 +63,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
       </div>
     </transition>
   </div>
-  <sidebar
+  <Sidebar
     v-if="showSidebar"
     :show="showSidebar"
     @close="closeSidebar"
