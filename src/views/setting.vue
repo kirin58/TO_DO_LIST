@@ -1,16 +1,19 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import Sidebar from '../components/setting/sidebar.vue'
+import { useRouter } from 'vue-router'
+import Sidebar from '../components/setting/Sidebar.vue'
 const props = defineProps({
   show: Boolean
 })
 const emit = defineEmits(['close'])
 
 const wrapper = ref(null)
+const router = useRouter()
 
 function signOut() {
   emit('close')
   alert('Signed out')
+  router.push({ path: '/' })
 }
 
 const showSidebar = ref(false)
@@ -29,7 +32,6 @@ function handleClickOutside(e) {
 
 onMounted(() => document.addEventListener('mousedown', handleClickOutside))
 onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
-
 </script>
 
 <template>
