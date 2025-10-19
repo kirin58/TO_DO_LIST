@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import Sidebar from '../components/setting/sidebar.vue'
+import Sidebar from '../components/setting/Sidebar.vue'
 const props = defineProps({
   show: Boolean
 })
@@ -29,6 +29,7 @@ function handleClickOutside(e) {
 
 onMounted(() => document.addEventListener('mousedown', handleClickOutside))
 onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutside))
+
 
 </script>
 
@@ -61,7 +62,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
       </div>
     </transition>
   </div>
-  <sidebar
+  <Sidebar
     v-if="showSidebar"
     :show="showSidebar"
     @close="closeSidebar"
