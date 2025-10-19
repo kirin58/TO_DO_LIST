@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import Sidebar from '../components/setting/Sidebar.vue'
+import Sidebar from '../components/setting/sidebar.vue'
 const props = defineProps({
   show: Boolean
 })
