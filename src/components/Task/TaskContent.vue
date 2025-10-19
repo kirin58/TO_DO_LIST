@@ -223,7 +223,6 @@ function sortByPriorityFn(a, b) {
 
 function handleSelectType(type) {
   currentSortType.value = type
-  tasksForDraggableMutable.value = [...tasksForDraggableMutable.value]
 }
 
 async function editTaskPinned(task) {
@@ -335,45 +334,47 @@ const tasksForDraggableMutable = computed({
   get() {
     let filteredTasks = tasks.value.filter(t => isTaskInMode(t))
 
-    const pinnedSort = (a, b) => (a.pinned && !b.pinned ? -1 : !a.pinned && b.pinned ? 1 : 0)
-    const sortByDateFn = (a, b) => {
-      if (!a.dueDate && b.dueDate) return 1
-      if (a.dueDate && !b.dueDate) return -1
-      if (!a.dueDate && !b.dueDate) return 0
-      return new Date(a.dueDate) - new Date(b.dueDate)
-    }
-    const sortByPriorityFn = (a, b) => {
-      const priorityOrder = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
-      return (priorityOrder[a.priority] || 5) - (priorityOrder[b.priority] || 5)
-    }
-    const sortByTagFn = (a, b) => {
-      if (!a.tagId && b.tagId) return 1
-      if (a.tagId && !b.tagId) return -1
-      if (!a.tagId && !b.tagId) return 0
-      return a.tagId - b.tagId
-    }
+    const pinnedTasks = filteredTasks.filter(t => t.pinned)
+    const normalTasks = filteredTasks.filter(t => !t.pinned)
 
-    // เลือก sort ตาม type ที่เลือก
+    let sortedNormal = [...normalTasks]
+
+    // --- เรียงตาม currentSortType ---
     switch (currentSortType.value) {
       case 'Date':
-        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByDateFn(a, b))
+        sortedNormal.sort((a, b) => {
+          if (!a.dueDate && b.dueDate) return 1
+          if (a.dueDate && !b.dueDate) return -1
+          if (!a.dueDate && !b.dueDate) return 0
+          return new Date(a.dueDate) - new Date(b.dueDate)
+        })
         break
       case 'Priority':
-        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByPriorityFn(a, b))
+        const order = { red: 1, yellow: 2, sky: 3, green: 4, "": 5 }
+        sortedNormal.sort((a, b) => (order[a.priority] || 5) - (order[b.priority] || 5))
         break
       case 'Tag':
-        filteredTasks.sort((a, b) => pinnedSort(a, b) || sortByTagFn(a, b))
+        sortedNormal.sort((a, b) => {
+          if (!a.tagId && b.tagId) return 1
+          if (a.tagId && !b.tagId) return -1
+          if (!a.tagId && !b.tagId) return 0
+          return a.tagId - b.tagId
+        })
         break
+      case 'None':
       default:
-        filteredTasks.sort((a, b) => pinnedSort(a, b) || b.id - a.id)
+        break
     }
 
-    return filteredTasks
+    return [...pinnedTasks, ...sortedNormal]
   },
+
   set(newVal) {
-    const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
-    tasks.value = [...newVal, ...otherTasks]
-    saveTask
+    if (currentSortType.value === 'None') {
+      const otherTasks = tasks.value.filter(t => !isTaskInMode(t))
+      tasks.value = [...newVal, ...otherTasks]
+      saveTasks()
+    }
   }
 })
 </script>
@@ -413,6 +414,7 @@ const tasksForDraggableMutable = computed({
           :tasks="tasksForDraggableMutable"  
           :editID="editID" 
           :editText="editText" 
+          :currentSortType="currentSortType" 
           :tags="tags" 
           @pin-task="editTaskPinned"
           @update:tasks="tasksForDraggableMutable = $event" 
