@@ -440,36 +440,73 @@ function goTo(page) {
                 </div>
             </div>
             <div v-else-if="currentPage === 'Collaborate'">
-            <h3 class="font-serif text-xl mb-6">Collaborate</h3>
-            <section class="bg-[#faf9f7] rounded-xl p-6 mb-4 relative">
-                <div class="font-medium mb-1">Auto Accept Invites</div>
-                <div class="text-sm text-gray-600 mb-2">
-                If enabled, automatically accept invites from known collaborators.
+                <h3 class="font-serif text-xl mb-6">Collaborate</h3>
+                <section class="bg-[#faf9f7] rounded-xl p-6 mb-4 relative">
+                    <div class="font-medium mb-1">Auto Accept Invites</div>
+                    <div class="text-sm text-gray-600 mb-2">
+                    If enabled, automatically accept invites from known collaborators.
+                    </div>
+                    <div class="absolute top-6 right-6">
+                    <input type="checkbox" class="w-4 h-4 accent-black" checked />
+                    </div>
+                </section>
+                <section class="bg-[#faf9f7] rounded-xl p-6">
+                    <div class="font-medium mb-1">Default Notifications for Shared Lists</div>
+                    <div class="text-sm text-gray-600 mb-4">
+                    You can choose to receive the following notifications from all shared lists. If the notification type of a specific list is manually changed, the default settings will no longer take effect on this list.
+                    </div>
+                    <div class="flex flex-col gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                        <span>Complete/Undo a task</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                        <span>Add a task/note</span>
+                    </label>
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" class="w-4 h-4 accent-black" />
+                        <span>Delete/Move a task/note</span>
+                    </label>
+                    </div>
+                </section>
+            </div>
+            <div v-else-if="currentPage === 'About'">
+                <div class="grid grid-cols-4 gap-x-6 gap-y-4">
+                    <!-- หัวข้อ -->
+                    <div class="col-span-4 font-serif text-lg mb-1">Hi, welcome</div>
+
+                    <!-- ย่อหน้า -->
+                    <div class="col-span-4 text-sm text-gray-700 leading-relaxed">
+                    Welcome to your personal dashboard. Here, you can quickly get an overview of your activities,
+                    track your progress, and manage your tasks efficiently.  
+                    Take a moment to explore the available sections and discover how everything connects together.
+                    </div>
+
+                    <div class="col-span-4 text-sm text-gray-700 leading-relaxed">
+                    We’re constantly improving to make your experience smoother and more productive.  
+                    Feel free to adjust your settings, manage integrations, and personalize the workspace just the way you like.
+                    </div>
+
+                    <!-- การ์ด 4 ใบ -->
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Overview</div>
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Upcoming Tasks</div>
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Recent Activity</div>
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Reminders</div>
+
+                    <!-- ข้อความเพิ่มเติม -->
+                    <div class="col-span-4 text-sm text-gray-700 leading-relaxed mt-4">
+                    Stay focused and make progress every day.  
+                    With our intuitive interface, you can easily switch between views, access integrations,
+                    and keep everything synced across devices.
+                    </div>
+
+                    <!-- การ์ด 3 ใบ -->
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Projects</div>
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Goals</div>
+                    <div class="bg-[#faf9f7] rounded-xl px-4 py-3 text-sm">Reports</div>
+                    <div></div>
                 </div>
-                <div class="absolute top-6 right-6">
-                <input type="checkbox" class="w-4 h-4 accent-black" checked />
-                </div>
-            </section>
-            <section class="bg-[#faf9f7] rounded-xl p-6">
-                <div class="font-medium mb-1">Default Notifications for Shared Lists</div>
-                <div class="text-sm text-gray-600 mb-4">
-                You can choose to receive the following notifications from all shared lists. If the notification type of a specific list is manually changed, the default settings will no longer take effect on this list.
-                </div>
-                <div class="flex flex-col gap-4">
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" class="w-4 h-4 accent-black" />
-                    <span>Complete/Undo a task</span>
-                </label>
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" class="w-4 h-4 accent-black" />
-                    <span>Add a task/note</span>
-                </label>
-                <label class="flex items-center gap-2">
-                    <input type="checkbox" class="w-4 h-4 accent-black" />
-                    <span>Delete/Move a task/note</span>
-                </label>
-                </div>
-            </section>
             </div>                       
         </main>
     </div>
