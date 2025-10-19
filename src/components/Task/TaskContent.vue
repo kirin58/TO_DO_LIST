@@ -365,7 +365,6 @@ const tasksForDraggableMutable = computed({
       default:
         break
     }
-
     return [...pinnedTasks, ...sortedNormal]
   },
 
