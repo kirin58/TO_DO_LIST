@@ -9,8 +9,10 @@ const props = defineProps({
   editID: Number,
   editText: String,
   tags: Array,
-  mode: { type: String, default: 'inbox' }
+  mode: { type: String, default: 'inbox' },
+  currentSortType: { type: String, default: 'None' }
 })
+
 
 const emit = defineEmits([
   'update:tasks',
@@ -48,9 +50,6 @@ async function fetchTasks() {
         is_trashed,
         updated_at
       `)
-      .order('pinned' , {ascending:false})
-      .order('id', { ascending: false })
-      
     if (fetchError) throw fetchError
 
     // Map ให้ field สอดคล้องกับ UI เดิม
@@ -65,6 +64,11 @@ async function fetchTasks() {
         dueDate: task.due_date,
         tagId: task.tag_id
     }))
+    .sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return b.id - a.id // งานใหม่ขึ้นก่อน
+    })
   } catch (err) {
     console.error('Error fetching tasks:', err)
     error.value = err.message
@@ -75,6 +79,7 @@ async function fetchTasks() {
 
 function onDragEnd() {
   emit('update:tasks', tasksForDraggableMutable.value)
+  console.log('New order:', tasksForDraggableMutable.value.map(t => t.title))
 }
 
 function togglePopup(id, event) {
@@ -134,7 +139,11 @@ function editTaskPriority(task, priority) {
 function editTaskPinned(task) {
   task.pinned = !task.pinned
   updateTaskField(task.id, { pinned: task.pinned })
-  emit('update:tasks', tasks.value) // ⚡️ ทำให้ pinned sort ใหม่
+    tasksForDraggableMutable.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return 0
+  })
 }
 
 const tagsList = ref([...props.tags])
@@ -151,6 +160,8 @@ function handleSelectTag(task, tag) {
 watch(() => props.tags, (newTags) => {
   tagsList.value = newTags
 })
+
+
 
 let channel = null
 
@@ -213,18 +224,32 @@ onUnmounted(() => {
   if (channel) supabase.removeChannel(channel)
 })
 
-const draggableTasks = ref([])
+watch(() => props.currentSortType, () => {
+  tasksForDraggableMutable.value.sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
 
-watch(() => props.tasks, (newTasks) => {
-  draggableTasks.value = [...newTasks]
-}, { immediate: true })
+    switch (props.currentSortType) {
+      case 'Date':
+        return new Date(a.dueDate || 0) - new Date(b.dueDate || 0)
+      case 'Priority':
+        const order = { red: 1, yellow: 2, sky: 3, green: 4, null: 5 }
+        return (order[a.priority] || 5) - (order[b.priority] || 5)
+      case 'Tag':
+        return (a.tagId || 0) - (b.tagId || 0)
+      default:
+        return b.id - a.id
+    }
+  })
+})
+
 </script>
 
 <template>
     <div v-if="loading" class="text-gray-500 mb-2">Loading tasks...</div>
     <div v-if="error" class="text-red-500 mb-2">{{ error }}</div>
     <draggable 
-    v-model="draggableTasks" 
+    v-model="tasksForDraggableMutable" 
     item-key="id" 
     class="space-y-2" 
     handle=".drag-handle" 
@@ -232,6 +257,7 @@ watch(() => props.tasks, (newTasks) => {
     ghost-class="drag-ghost"
     chosen-class="drag-chosen" 
     @end="onDragEnd"
+    :disabled="currentSortType !== 'None'"
     >
     <template #item="{ element: t }">
       <div v-if="t" :key="t.id" class="flex items-center">
@@ -260,7 +286,7 @@ watch(() => props.tasks, (newTasks) => {
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
               <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
-                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.name|| '' }}
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
@@ -279,7 +305,7 @@ watch(() => props.tasks, (newTasks) => {
                 @delete="$emit('delete-task', t.id)"
                 :tags="tagsList" 
                 @select-tag="(tag) => handleSelectTag(t, tag)"
-                @update-tag="handleUpdateTag"
+          
                 />
           </div>
         </div>
