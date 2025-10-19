@@ -152,39 +152,6 @@ watch(() => props.tags, (newTags) => {
   tagsList.value = newTags
 })
 
-// กรอง task ตาม mode
-// const tasksInMode = computed({
-//   get() {
-//     return props.tasks.filter(task => {
-//       if (!task.dueDate) return props.mode === 'inbox'
-//       const taskDate = new Date(task.dueDate)
-//       taskDate.setHours(0,0,0,0)
-//       const today = new Date()
-//       today.setHours(0,0,0,0)
-
-//       if (props.mode === 'today') return taskDate.getTime() === today.getTime()
-//       if (props.mode === 'next7') {
-//         const start = new Date(today)
-//         start.setDate(start.getDate() + 1)
-//         const end = new Date(today)
-//         end.setDate(end.getDate() + 7)
-//         return taskDate >= start && taskDate <= end
-//       }
-//       return true
-//     })
-//     .sort((a, b) => {
-//       if (a.pinned === b.pinned) return b.id - a.id
-//       return b.pinned - a.pinned
-//     })
-//   },
-//   set(newVal) {
-//     // update array หลัก
-//     const otherTasks = props.tasks.filter(t => !newVal.includes(t))
-//     emit('update:tasks', [...newVal, ...otherTasks])
-//   }
-// })
-
-
 let channel = null
 
 onMounted(async () => {
@@ -293,7 +260,7 @@ watch(() => props.tasks, (newTasks) => {
                 {{ new Date(t.dueDate).toLocaleDateString('th-TH',{day:'numeric', month:'short',year:'numeric'}) }}
               </div>
               <span v-if="tagsList && t.tagId" class="bg-teal-300 p-1 rounded-lg text-lg">
-                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.text || '' }}
+                {{ tagsList.find(tag => String(tag.id) === String(t.tagId))?.name|| '' }}
               </span>
               <i v-if="t.priority" :class="flagClass(t.priority)"></i>
           </div>
