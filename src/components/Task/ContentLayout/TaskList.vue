@@ -26,7 +26,6 @@ const emit = defineEmits([
   'select-tag'
 ])
 
-const tasksForDraggableMutable = ref([])
 const loading = ref(false)
 const error = ref(null)
 const popupPosition = ref('bottom')
@@ -77,9 +76,13 @@ async function fetchTasks() {
   }
 }
 
+const tasksForDraggableMutable = computed({
+  get: () => props.tasks,
+  set: (newVal) => emit('update:tasks', newVal)
+})
+
 function onDragEnd() {
   emit('update:tasks', tasksForDraggableMutable.value)
-  console.log('New order:', tasksForDraggableMutable.value.map(t => t.title))
 }
 
 function togglePopup(id, event) {
